@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>THEY ARE COMING — Zombie Survival Shooter</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="960" height="600"></canvas>
+
+  <!-- ===================== TITLE / MENU ===================== -->
+  <div id="menu" class="screen active">
+    <div class="menu-inner">
+      <h1 class="title">THEY ARE <span class="bleed">COMING</span></h1>
+      <p class="subtitle">A gritty top-down zombie survival shooter</p>
+      <div class="menu-buttons">
+        <button id="btnStart" class="btn big">▶ NEW GAME</button>
+        <button id="btnHowto" class="btn">HOW TO PLAY</button>
+      </div>
+      <div id="howto" class="howto hidden">
+        <h3>CONTROLS</h3>
+        <ul>
+          <li><b>WASD</b> — Move (all directions)</li>
+          <li><b>Mouse</b> — Aim (player faces cursor)</li>
+          <li><b>RIGHT-CLICK</b> — Fire weapon <span class="dim">(left-click does nothing)</span></li>
+          <li><b>R</b> — Reload &nbsp; <b>Shift</b> — Sprint &nbsp; <b>Q</b> — Swap weapon</li>
+          <li><b>E</b> — Place trap &nbsp; <b>F</b> — Melee &nbsp; <b>Space</b> — Use consumable</li>
+          <li><b>1-4</b> — Quick-select consumable</li>
+        </ul>
+      </div>
+      <p class="credit">Survive the swarm. Bank the bounty. Suit up. Repeat.</p>
+    </div>
+  </div>
+
+  <!-- ===================== HUB (SHOP + LOADOUT) ===================== -->
+  <div id="hub" class="screen">
+    <div class="hub-top">
+      <div class="hub-tabs">
+        <button class="tab active" data-tab="loadout">⛨ SUIT UP</button>
+        <button class="tab" data-tab="shop">🛒 SHOP</button>
+      </div>
+      <div class="hub-wallet">
+        <span class="wave-pill">WAVE <b id="hubWave">1</b></span>
+        <span class="cash">$ <b id="hubCash">0</b></span>
+        <span class="salvage">◆ <b id="hubSalvage">0</b></span>
+      </div>
+      <button id="btnDeploy" class="btn deploy">DEPLOY ▶</button>
+    </div>
+
+    <!-- LOADOUT TAB -->
+    <div id="tab-loadout" class="tab-panel active">
+      <div class="loadout-grid">
+        <div class="char-panel">
+          <h3>FIELD OPERATIVE</h3>
+          <canvas id="charPreview" width="220" height="260"></canvas>
+          <div id="charStats" class="char-stats"></div>
+        </div>
+        <div class="slots-panel">
+          <h3>EQUIPMENT</h3>
+          <div id="equipSlots" class="equip-slots"></div>
+          <h3>ATTACHMENTS <span class="dim">(selected weapon)</span></h3>
+          <div id="attachSlots" class="attach-slots"></div>
+        </div>
+        <div class="inv-panel">
+          <h3>INVENTORY <span class="dim">— click to equip</span></h3>
+          <div id="invFilters" class="inv-filters"></div>
+          <div id="inventory" class="inventory"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOP TAB -->
+    <div id="tab-shop" class="tab-panel">
+      <div class="shop-grid">
+        <div class="shop-cats" id="shopCats"></div>
+        <div class="shop-items" id="shopItems"></div>
+        <div class="shop-detail" id="shopDetail">
+          <p class="dim">Select an item to inspect & buy.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== IN-GAME HUD ===================== -->
+  <div id="hud" class="screen hud">
+    <div class="hud-top">
+      <div class="hud-wave">WAVE <b id="hudWave">1</b> <span id="hudWaveName" class="dim"></span></div>
+      <div class="hud-zombies">☣ <b id="hudZleft">0</b> LEFT</div>
+      <div class="hud-cash">$ <b id="hudCash">0</b></div>
+      <div class="hud-score">SCORE <b id="hudScore">0</b></div>
+    </div>
+    <div class="hud-bottom">
+      <div class="hud-vitals">
+        <div class="bar hp"><div id="hpFill" class="fill"></div><span id="hpText">100/100</span></div>
+        <div class="bar armor"><div id="armorFill" class="fill"></div><span id="armorText">0</span></div>
+        <div class="bar stamina"><div id="staFill" class="fill"></div><span>STAMINA</span></div>
+      </div>
+      <div class="hud-weapon">
+        <canvas id="hudGun" width="120" height="40"></canvas>
+        <div class="wpn-info">
+          <div id="wpnName" class="wpn-name">—</div>
+          <div id="ammo" class="ammo">0 / 0</div>
+        </div>
+      </div>
+      <div class="hud-belt" id="belt"></div>
+    </div>
+    <div id="waveBanner" class="wave-banner hidden"></div>
+  </div>
+
+  <!-- ===================== WAVE COMPLETE ===================== -->
+  <div id="wavecomplete" class="screen overlay">
+    <div class="oc">
+      <h2 class="wc-title">WAVE CLEARED</h2>
+      <div id="wcStats" class="wc-stats"></div>
+      <button id="btnContinue" class="btn big">CONTINUE → SUIT UP</button>
+    </div>
+  </div>
+
+  <!-- ===================== GAME OVER ===================== -->
+  <div id="gameover" class="screen overlay">
+    <div class="oc">
+      <h2 class="go-title">YOU WERE OVERRUN</h2>
+      <div id="goStats" class="wc-stats"></div>
+      <button id="btnRestart" class="btn big">↺ TRY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- load order matters (classic scripts, global TAC namespace) -->
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
