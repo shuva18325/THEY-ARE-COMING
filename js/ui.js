@@ -130,6 +130,14 @@
       x.scale(4.4, 4.4);
       T.Sprites.drawPlayerPortrait(x, gear, eq.primary || eq.secondary);
       x.restore();
+      // equipped companion stands beside the operative
+      if (eq.pet && T.PETS[eq.pet]) {
+        x.save();
+        x.translate(c.width / 2 + 56, 226);
+        x.scale(2.5, 2.5); x.rotate(Math.PI);
+        T.Sprites.drawPet(x, { def: T.PETS[eq.pet], animPhase: 1, bob: 0 });
+        x.restore();
+      }
     }
 
     renderEquipSlots() {
@@ -139,6 +147,7 @@
         ['primary', 'Primary'], ['secondary', 'Secondary'], ['melee', 'Melee'],
         ['helmet', 'Helmet'], ['chest', 'Chest/Jacket'], ['legs', 'Leggings'],
         ['boots', 'Boots'], ['gloves', 'Gloves'], ['backpack', 'Backpack'],
+        ['pet', 'Pet / K-9'],
       ];
       slots.forEach(([key, label]) => {
         const id = eq[key];
@@ -159,6 +168,7 @@
 
     filterForSlot(key) {
       if (['primary', 'secondary', 'melee'].includes(key)) return 'weapon';
+      if (key === 'pet') return 'pet';
       return 'armor';
     }
 
@@ -192,7 +202,7 @@
     renderInventory() {
       const wrap = $('#inventory'); wrap.innerHTML = '';
       const fwrap = $('#invFilters'); fwrap.innerHTML = '';
-      const filters = [['all', 'All'], ['weapon', 'Weapons'], ['armor', 'Armor'], ['trap', 'Traps'], ['item', 'Consumables'], ['attach', 'Attach']];
+      const filters = [['all', 'All'], ['weapon', 'Weapons'], ['armor', 'Armor'], ['pet', 'Pets'], ['trap', 'Traps'], ['item', 'Consumables'], ['attach', 'Attach']];
       filters.forEach(([k, lbl]) => {
         const b = el('button', 'fbtn' + (this.invFilter === k ? ' active' : ''), lbl);
         b.onclick = () => { this.invFilter = k; this.renderInventory(); };
@@ -204,6 +214,7 @@
       if (this.invFilter === 'all' || this.invFilter === 'armor') owned.armor.forEach(id => list.push({ id, kind: 'armor' }));
       if (this.invFilter === 'all' || this.invFilter === 'trap') for (const id in owned.traps) if (owned.traps[id] > 0) list.push({ id, kind: 'trap', qty: owned.traps[id] });
       if (this.invFilter === 'all' || this.invFilter === 'item') for (const id in owned.items) if (owned.items[id] > 0) list.push({ id, kind: 'item', qty: owned.items[id] });
+      if (this.invFilter === 'all' || this.invFilter === 'pet') (owned.pets || []).forEach(id => list.push({ id, kind: 'pet' }));
       if (this.invFilter === 'attach') (owned.attachUnlocked || []).forEach(id => list.push({ id, kind: 'attach' }));
 
       list.forEach(({ id, kind, qty }) => {
@@ -226,6 +237,7 @@
       if (kind === 'armor') return T.ARMOR[id].slot;
       if (kind === 'trap') return 'trap';
       if (kind === 'item') return T.ITEMS[id].kind;
+      if (kind === 'pet') return 'companion';
       return 'attachment';
     }
 
@@ -235,6 +247,7 @@
       if (kind === 'armor') { const s = T.ARMOR[id].slot; return eq[s] === id; }
       if (kind === 'trap') return eq.trapSlot.includes(id);
       if (kind === 'item') return eq.belt.includes(id);
+      if (kind === 'pet') return eq.pet === id;
       return false;
     }
 
@@ -256,6 +269,8 @@
         const i = eq.belt.indexOf(id);
         if (i >= 0) eq.belt.splice(i, 1);
         else { if (eq.belt.length >= stats.beltSlots) { T.Audio.dry(); return; } eq.belt.push(id); }
+      } else if (kind === 'pet') {
+        eq.pet = (eq.pet === id) ? null : id; // toggle companion
       } else return;
       T.Audio.tone(500, 0.04, 'square', 0.07);
       this.renderLoadout();
@@ -282,7 +297,7 @@
     renderShop() {
       $('#hubCash').textContent = T.fmt(this.G.state.cash);
       $('#hubSalvage').textContent = this.G.state.salvage;
-      const cats = ['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special', 'Traps', 'Utility', 'Armor', 'Attachments'];
+      const cats = ['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special', 'Pets', 'Traps', 'Utility', 'Armor', 'Attachments'];
       const cw = $('#shopCats'); cw.innerHTML = '';
       cats.forEach(c => {
         const b = el('button', this.shopCat === c ? 'active' : '', c);
@@ -317,6 +332,7 @@
       if (k === 'trap') return 'trap';
       if (k === 'item') return T.ITEMS[id].kind;
       if (k === 'attach') return 'attachment';
+      if (k === 'pet') return T.PETS[id].kind === 'ranged' ? 'drone' : 'companion';
       return '';
     }
 
@@ -331,7 +347,8 @@
       let ids = [];
       if (['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special'].includes(cat)) {
         ids = Object.keys(T.WEAPONS).filter(id => T.WEAPONS[id].fam === cat);
-      } else if (cat === 'Traps') ids = Object.keys(T.TRAPS);
+      } else if (cat === 'Pets') ids = Object.keys(T.PETS);
+      else if (cat === 'Traps') ids = Object.keys(T.TRAPS);
       else if (cat === 'Utility') ids = Object.keys(T.ITEMS);
       else if (cat === 'Armor') ids = Object.keys(T.ARMOR);
       else if (cat === 'Attachments') ids = Object.keys(T.ATTACHMENTS);
@@ -344,6 +361,7 @@
       if (k === 'weapon') return o.weapons.includes(id);
       if (k === 'armor') return o.armor.includes(id);
       if (k === 'attach') return (o.attachUnlocked || []).includes(id);
+      if (k === 'pet') return (o.pets || []).includes(id);
       return false; // traps/items are stackable
     }
 
@@ -425,6 +443,10 @@
         for (const k in (a.mods || {})) out.push([k, (a.mods[k] > 0 ? '+' : '') + Math.round(a.mods[k] * 100) + '%']);
         return out;
       }
+      if (kind === 'pet') {
+        const p = def;
+        return [['Type', p.kind === 'ranged' ? 'Ranged drone' : 'Melee companion'], ['Damage', p.dmg], ['Attack Rate', p.atkCd + 's'], ['Speed', p.spd], ['Aggro Range', p.range]];
+      }
       return [];
     }
 
@@ -439,6 +461,7 @@
       else if (kind === 'trap') { o.traps[id] = (o.traps[id] || 0) + 1; }
       else if (kind === 'item') { o.items[id] = (o.items[id] || 0) + 1; }
       else if (kind === 'attach') { o.attachUnlocked = o.attachUnlocked || []; if (!o.attachUnlocked.includes(id)) o.attachUnlocked.push(id); }
+      else if (kind === 'pet') { o.pets = o.pets || []; if (!o.pets.includes(id)) o.pets.push(id); }
       T.Audio.buy();
       this.daveComment('buy');
       this.renderShop();

@@ -28,14 +28,20 @@
     lmg_saw:  { name:'Saw',         fam:'LMG', slot:'primary', rarity:'epic',      price:3600, dmg:26, rpm:750,  spd:840, spread:6, mag:100, reserve:300, reload:4.0, bullet:'round', kb:60, recoil:3, range:640, auto:true, pierce:1, perks:['100-round belt'], desc:'Belt-fed suppression. Never stop firing.' },
     lmg_mini: { name:'Annihilator', fam:'LMG', slot:'primary', rarity:'legendary', price:6500, dmg:22, rpm:1400, spd:800, spread:7, mag:200, reserve:400, reload:5.0, bullet:'round', kb:50, recoil:2, range:600, auto:true, spinup:0.5, perks:['Spin-up minigun','200 rounds'], desc:'Six barrels of apocalypse. Bring earplugs.' },
     // MELEE
-    melee_bat:     { name:'Slugger',      fam:'Melee', slot:'melee', rarity:'common',   price:300,  dmg:60,  range:58, swing:0.42, arc:1.5, kb:160, perks:['Knockback'], desc:'Aluminum bat. Crack skulls, save ammo.' },
-    melee_machete: { name:"Reaper's Edge",fam:'Melee', slot:'melee', rarity:'rare',     price:1100, dmg:85,  range:62, swing:0.38, arc:1.3, kb:90,  bleed:true, perks:['Causes bleed','Fast swing'], desc:'Keen blade. Carves bleeding wounds.' },
-    melee_axe:     { name:'Cleaver',      fam:'Melee', slot:'melee', rarity:'uncommon', price:700,  dmg:120, range:54, swing:0.6,  arc:1.1, kb:120, perks:['Huge damage'], desc:'Fire axe. Slow, but it ends things.' },
+    melee_knife:    { name:'Trench Knife',  fam:'Melee', slot:'melee', rarity:'common',   price:200,  dmg:45,  range:44, swing:0.26, arc:1.1, kb:40,  bleed:true, perks:['Very fast','Bleed'], desc:'Brutal little blade. Stab, stab, stab.' },
+    melee_bat:      { name:'Slugger',       fam:'Melee', slot:'melee', rarity:'common',   price:300,  dmg:60,  range:58, swing:0.42, arc:1.5, kb:160, perks:['Knockback'], desc:'Aluminum bat. Crack skulls, save ammo.' },
+    melee_axe:      { name:'Cleaver',       fam:'Melee', slot:'melee', rarity:'uncommon', price:700,  dmg:120, range:54, swing:0.6,  arc:1.1, kb:120, perks:['Huge damage'], desc:'Fire axe. Slow, but it ends things.' },
+    melee_spear:    { name:'Impaler',       fam:'Melee', slot:'melee', rarity:'uncommon', price:850,  dmg:95,  range:84, swing:0.5,  arc:0.6, kb:130, perks:['Long reach','Stabs a line'], desc:'Improvised pike. Skewer them before they touch you.' },
+    melee_machete:  { name:"Reaper's Edge", fam:'Melee', slot:'melee', rarity:'rare',     price:1100, dmg:85,  range:62, swing:0.38, arc:1.3, kb:90,  bleed:true, perks:['Causes bleed','Fast swing'], desc:'Keen blade. Carves bleeding wounds.' },
+    melee_sledge:   { name:'Demolisher',    fam:'Melee', slot:'melee', rarity:'rare',     price:1300, dmg:185, range:56, swing:0.8,  arc:1.2, kb:280, perks:['Massive knockback'], desc:'Sledgehammer. Sends the dead flying in pieces.' },
+    melee_katana:   { name:'Tamashii',      fam:'Melee', slot:'melee', rarity:'epic',     price:2400, dmg:135, range:68, swing:0.3,  arc:1.7, kb:120, bleed:true, perks:['Wide arc','Fast','Bleed'], desc:'A masterwork katana. One stroke, many corpses.' },
+    melee_chainsaw: { name:'The Ripper',    fam:'Melee', slot:'melee', rarity:'epic',     price:2800, dmg:42,  range:54, swing:0.12, arc:1.0, kb:30,  bleed:true, perks:['Shreds continuously'], desc:'Roaring chainsaw. Hold it to them and watch the gibs.' },
     // SPECIAL
     spec_crossbow: { name:'Silent Death', fam:'Special', slot:'primary', rarity:'rare',      price:1800, dmg:135, rpm:70,   spd:720, spread:1,  mag:1,   reserve:40,  reload:1.4, bullet:'bolt',    kb:90,  recoil:2, range:760, auto:false, pierce:3, silent:true, perks:['Silent','Pierces 3'], desc:'No noise, no mercy. Pins zombies to walls.' },
     spec_flame:    { name:'Inferno',      fam:'Special', slot:'primary', rarity:'epic',      price:3300, dmg:9,   rpm:1200, spd:360, spread:10, mag:100, reserve:200, reload:3.0, bullet:'flame',   kb:10,  recoil:1, range:230, auto:true, fire:true, perks:['Ignites enemies','Cone of fire'], desc:'Liquid fire. Watch the horde cook.' },
     spec_gl:       { name:'Thumper',      fam:'Special', slot:'primary', rarity:'epic',      price:3500, dmg:130, rpm:60,   spd:520, spread:1,  mag:4,   reserve:24,  reload:2.8, bullet:'grenade', kb:160, recoil:8, range:600, auto:false, aoe:95, perks:['Explosive AoE'], desc:'40mm grenades. Clear packs in one thunk.' },
     spec_rail:     { name:'Tesla Lance',  fam:'Special', slot:'primary', rarity:'legendary', price:6000, dmg:265, rpm:40,   spd:2000, spread:0, mag:4,   reserve:24,  reload:3.0, bullet:'rail',    kb:140, recoil:8, range:1300, auto:false, pierce:99, perks:['Pierces everything','Chain arc'], desc:'Magnetic rail spike. A laser of death down the lane.' },
+    spec_rpg:      { name:'Devastator',   fam:'Special', slot:'primary', rarity:'legendary', price:5500, dmg:240, rpm:48,   spd:480,  spread:1, mag:1,   reserve:14,  reload:2.7, bullet:'rocket',  kb:240, recoil:10, range:760, auto:false, aoe:120, fire:true, perks:['Huge explosion','Leaves fire','Knockback'], desc:'Shoulder-fired RPG. Delete entire packs in one screaming rocket.' },
   };
 
   // ---------- TRAPS & TURRETS (9) ----------
@@ -71,17 +77,20 @@
     helm_riot:   { name:'Riot Helmet',     slot:'helmet', rarity:'uncommon',  price:500,  armor:8,  color:'#2a3a4a', desc:'Polycarbonate visor. Decent head protection.' },
     helm_mil:    { name:'Military Helmet', slot:'helmet', rarity:'rare',      price:1100, armor:14, hp:10, color:'#3a4a2a', desc:'Kevlar combat helmet with night strap.' },
     helm_jug:    { name:'Juggernaut Helm', slot:'helmet', rarity:'legendary', price:3000, armor:28, hp:25, spd:-0.05, color:'#4a4a4a', desc:'Heavy welded faceplate. You are a tank.' },
+    helm_samurai:{ name:'Samurai Kabuto',  slot:'helmet', rarity:'epic',      price:2800, armor:24, hp:15, melee:0.15, color:'#7a1f1f', desc:'Lacquered war helm with a golden crest. +15% melee.' },
     // CHEST
     chest_hoodie:  { name:'Hoodie',          slot:'chest', rarity:'common',    price:0,    armor:3,  color:'#3a4a3a', desc:'A comfy grey hoodie. Sentimental value only.' },
     chest_leather: { name:'Leather Jacket',  slot:'chest', rarity:'uncommon',  price:600,  armor:10, color:'#3a2a20', desc:'Thick biker leather. Resists bites.' },
     chest_kevlar:  { name:'Kevlar Vest',     slot:'chest', rarity:'rare',      price:1400, armor:22, hp:15, color:'#2a2a2a', desc:'Soft body armor. Stops claws and small bites.' },
     chest_plate:   { name:'Plate Carrier',   slot:'chest', rarity:'epic',      price:2600, armor:34, hp:25, spd:-0.03, color:'#3a3a30', desc:'Ceramic plates front and back. Serious protection.' },
     chest_jug:     { name:'Juggernaut Plate',slot:'chest', rarity:'legendary', price:4500, armor:50, hp:60, spd:-0.12, color:'#4a4a4a', desc:'Full siege armor. Slow, unstoppable, terrifying.' },
+    chest_samurai: { name:'Samurai Dō',      slot:'chest', rarity:'epic',      price:3600, armor:40, hp:30, melee:0.20, spd:-0.04, color:'#8a2424', desc:'Lamellar samurai cuirass. Proud and tough. +20% melee.' },
     // LEGS (leggings)
     legs_jeans:    { name:'Jeans',            slot:'legs', rarity:'common',   price:0,    armor:2,  color:'#2a3a55', desc:'Sturdy denim. Better than bare legs.' },
     legs_cargo:    { name:'Cargo Pants',      slot:'legs', rarity:'uncommon', price:400,  armor:6,  beltSlots:1, color:'#4a4a30', desc:'Lots of pockets. +1 consumable slot.' },
     legs_tactical: { name:'Tactical Leggings',slot:'legs', rarity:'rare',     price:1000, armor:12, spd:0.04, color:'#2a3a2a', desc:'Lightweight armored weave. A touch faster.' },
     legs_greaves:  { name:'Armored Greaves',  slot:'legs', rarity:'epic',     price:2200, armor:24, spd:-0.04, color:'#444', desc:'Steel leg plates. Heavy but tough.' },
+    legs_samurai:  { name:'Samurai Suneate',  slot:'legs', rarity:'rare',     price:1800, armor:18, melee:0.10, color:'#6a1818', desc:'Armored samurai greaves. +10% melee.' },
     // BOOTS
     boots_sneak:  { name:'Sneakers',     slot:'boots', rarity:'common',   price:0,    spd:0.06, color:'#cccccc', desc:'Worn running shoes. Light and quick.' },
     boots_combat: { name:'Combat Boots', slot:'boots', rarity:'uncommon', price:450,  armor:5, spd:0.02, color:'#2a2a22', desc:'Steel-shank combat boots.' },
@@ -150,11 +159,12 @@
     cash: 900,
     salvage: 2,
     owned: {
-      weapons:  ['pistol_glock', 'melee_bat'],
+      weapons:  ['pistol_glock', 'melee_knife', 'melee_bat'],
       armor:    ['helm_beanie', 'chest_hoodie', 'legs_jeans', 'boots_sneak', 'gloves_finger', 'pack_small'],
       traps:    {},          // id -> count
       items:    { item_bandage: 2 }, // id -> count
       attach:   {},          // weaponId -> [attachIds]
+      pets:     [],          // owned pet ids
     },
     equipped: {
       primary: null,
@@ -162,9 +172,19 @@
       melee: 'melee_bat',
       helmet: 'helm_beanie', chest: 'chest_hoodie', legs: 'legs_jeans',
       boots: 'boots_sneak', gloves: 'gloves_finger', backpack: 'pack_small',
+      pet: null,             // equipped companion
       trapSlot: [],          // trap ids loaded
       belt: ['item_bandage'],// consumable ids loaded
     },
+  };
+
+  // ---------- PETS / COMPANIONS (fight alongside you) ----------
+  // kind: 'melee' (charges & mauls) or 'ranged' (drone, auto-fires)
+  T.PETS = {
+    pet_k9:    { name:'K-9 Unit',        rarity:'uncommon', price:1200, kind:'melee',  hp:120, spd:205, dmg:28, atkCd:0.55, range:280, kb:80,  color:'#5a4632', desc:'Loyal attack dog. Fast and relentless — lunges at the nearest threat.' },
+    pet_bear:  { name:'War Bear',        rarity:'rare',     price:2400, kind:'melee',  hp:460, spd:135, dmg:80, atkCd:1.0,  range:240, kb:240, big:true, color:'#6a5038', desc:'A massive armored bear. Slow, but mauls and flings the horde.' },
+    pet_tiger: { name:'Siberian Tiger',  rarity:'epic',     price:3200, kind:'melee',  hp:230, spd:235, dmg:62, atkCd:0.6,  range:320, kb:120, leap:true, color:'#c8801a', desc:'Apex predator. Leaps onto zombies and shreds them apart.' },
+    pet_drone: { name:'Combat Drone',    rarity:'epic',     price:3000, kind:'ranged', hp:100, spd:240, dmg:16, atkCd:0.16, range:340, color:'#3a4048', desc:'Hovering gun drone. Auto-fires on the nearest zombie and never reloads.' },
   };
 
   // ---------- CRAZY DAVE — travelling arms dealer (dialogue) ----------
@@ -214,7 +234,7 @@
   };
 
   // unified lookup helper
-  T.lookup = id => T.WEAPONS[id] || T.TRAPS[id] || T.ITEMS[id] || T.ARMOR[id] || T.ATTACHMENTS[id] || null;
-  T.kindOf = id => T.WEAPONS[id] ? 'weapon' : T.TRAPS[id] ? 'trap' : T.ITEMS[id] ? 'item' : T.ARMOR[id] ? 'armor' : T.ATTACHMENTS[id] ? 'attach' : null;
+  T.lookup = id => T.WEAPONS[id] || T.TRAPS[id] || T.ITEMS[id] || T.ARMOR[id] || T.ATTACHMENTS[id] || T.PETS[id] || null;
+  T.kindOf = id => T.WEAPONS[id] ? 'weapon' : T.TRAPS[id] ? 'trap' : T.ITEMS[id] ? 'item' : T.ARMOR[id] ? 'armor' : T.ATTACHMENTS[id] ? 'attach' : T.PETS[id] ? 'pet' : null;
 
 })(window.TAC);

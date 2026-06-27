@@ -25,8 +25,8 @@
       this.dead = false;
       this.hitSet = new Set();
       this.trail = [];
-      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40' })[this.type];
-      this.r = this.type === 'grenade' ? 2.4 : (this.type === 'rail' ? 1.6 : 1.2);
+      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40', rocket: '#e8632a' })[this.type];
+      this.r = (this.type === 'grenade' || this.type === 'rocket') ? 2.6 : (this.type === 'rail' ? 1.6 : 1.2);
     }
     update(dt, G) {
       const px = this.x, py = this.y;
@@ -40,6 +40,7 @@
         G.particles.fire(this.x, this.y, 1);
         if (this.traveled > this.range) { this.dead = true; }
       }
+      if (this.type === 'rocket') { G.particles.smoke(this.x, this.y, 1, 'rgba(80,75,68,0.5)'); if (T.chance(0.6)) G.particles.fire(this.x, this.y, 1); }
       if (this.traveled > this.range) { this.dead = true; if (this.aoe) this.explode(G); return; }
       // arena bounds / props
       if (this.x < 0 || this.y < 0 || this.x > G.arena.w || this.y > G.arena.h) { this.dead = true; if (this.aoe) this.explode(G); return; }
@@ -89,7 +90,7 @@
           z.takeDamage(this.dmg * (1 - d / this.aoe * 0.5), ang, G, { ap: true, kb: 200 });
         }
       }
-      if (this.type === 'grenade' && this.fire) G.addHazard(this.x, this.y, this.aoe * 0.8, 4, 'fire');
+      if ((this.type === 'grenade' || this.type === 'rocket') && this.fire) G.addHazard(this.x, this.y, this.aoe * 0.8, 4, 'fire');
     }
     draw(ctx) {
       // trail
@@ -104,6 +105,7 @@
       const ang = Math.atan2(this.vy, this.vx);
       ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(ang);
       if (this.type === 'grenade') { ctx.fillStyle = '#3a3d40'; ctx.fillRect(-2, -1.5, 4, 3); ctx.fillStyle = '#777'; ctx.fillRect(-2, -1.5, 4, 1); }
+      else if (this.type === 'rocket') { ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-4, -1.5, 7, 3); ctx.fillStyle = '#b51d1d'; ctx.fillRect(2, -1.5, 2, 3); ctx.fillStyle = '#2a3a1a'; ctx.fillRect(-4, -2.5, 2, 1); ctx.fillRect(-4, 1.5, 2, 1); ctx.fillStyle = '#ffd24a'; ctx.fillRect(-6, -1, 2, 2); }
       else if (this.type === 'bolt') { ctx.fillStyle = '#caa'; ctx.fillRect(-3, -0.5, 6, 1); ctx.fillStyle = '#fff'; ctx.fillRect(2, -0.5, 2, 1); }
       else if (this.type === 'rail') { ctx.fillStyle = '#9fe8ff'; ctx.fillRect(-4, -0.8, 9, 1.6); ctx.fillStyle = '#fff'; ctx.fillRect(0, -0.6, 6, 1.2); }
       else { ctx.fillStyle = '#fff7c0'; ctx.fillRect(-2, -0.6, 4, 1.2); ctx.fillStyle = this.color; ctx.fillRect(-2, -0.6, 2, 1.2); }
@@ -429,7 +431,7 @@
       this.maxHp = stats.maxHp; this.hp = stats.maxHp;
       this.armor = stats.armor; this.baseSpeed = stats.speed;
       this.maxStamina = stats.stamina; this.stamina = stats.stamina;
-      this.reloadMul = stats.reloadMul; this.crit = stats.crit;
+      this.reloadMul = stats.reloadMul; this.crit = stats.crit; this.meleeMult = stats.meleeMult || 1;
       this.stats = stats; this.gear = gear; this.ammo = ammo; this.eq = eq;
       this.current = eq.primary ? 'primary' : 'secondary';
       this.heldGun = this.curWeaponId();
@@ -494,7 +496,7 @@
         if (d < w.range + z.def.r) {
           const a = T.angle(this.x, this.y, z.x, z.y);
           if (Math.abs(T.angleDiff(this.angle, a)) < w.arc) {
-            z.takeDamage(w.dmg, a, G, { kb: w.kb, crit: T.chance(0.2) });
+            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2) });
             if (w.bleed) z.burnT = Math.max(z.burnT, 0); // (bleed reuses dot lightly)
             hit = true;
           }
@@ -588,5 +590,68 @@
     }
   }
   T.Player = Player;
+
+  // ---------------- PET / COMPANION ----------------
+  class Pet {
+    constructor(x, y, id) {
+      this.def = T.PETS[id]; this.petId = id;
+      this.x = x; this.y = y; this.angle = 0;
+      this.animPhase = T.rand(0, 6); this.atk = 0; this.bob = 0; this.fireCd = 0;
+    }
+    update(dt, G) {
+      const d = this.def, p = G.player;
+      this.animPhase += dt * (5 + d.spd * 0.02);
+      this.bob = Math.sin(performance.now() / 140) * 2;
+      if (this.atk > 0) this.atk -= dt;
+      // acquire nearest zombie in range
+      let best = null, bd = d.range * d.range;
+      for (const z of G.zombies) { if (z.dead) continue; const dd = T.dist2(this.x, this.y, z.x, z.y); if (dd < bd) { bd = dd; best = z; } }
+
+      if (d.kind === 'ranged') { // drone: hover by player, auto-fire on target
+        const hx = p.x - Math.cos(p.angle) * 22 + Math.sin(p.angle) * 16;
+        const hy = p.y - Math.sin(p.angle) * 22 - Math.cos(p.angle) * 16;
+        const ha = T.angle(this.x, this.y, hx, hy), hd = T.dist(this.x, this.y, hx, hy);
+        if (hd > 6) { this.x += Math.cos(ha) * Math.min(d.spd, hd * 4) * dt; this.y += Math.sin(ha) * Math.min(d.spd, hd * 4) * dt; }
+        this.angle = best ? T.angle(this.x, this.y, best.x, best.y) : p.angle;
+        if (best) {
+          this.fireCd -= dt;
+          if (this.fireCd <= 0) {
+            this.fireCd = d.atkCd;
+            G.bullets.push(new Bullet(this.x, this.y, this.angle + T.rand(-0.04, 0.04), { spd: 820, dmg: d.dmg, bullet: 'round', range: d.range + 60 }, { owner: 'player', dmg: d.dmg }));
+            G.particles.muzzle(this.x + Math.cos(this.angle) * 8, this.y + Math.sin(this.angle) * 8, this.angle, 0.6);
+            T.Audio.shot('SMG');
+          }
+        }
+        return;
+      }
+
+      // melee companion: charge target, else heel near player
+      const tx = best ? best.x : p.x, ty = best ? best.y : p.y;
+      this.angle = T.angle(this.x, this.y, tx, ty);
+      const dToT = T.dist(this.x, this.y, tx, ty);
+      let spd = d.spd;
+      if (d.leap && best && dToT < 170 && dToT > 30) spd *= 1.7;   // pounce
+      if (!best && dToT < 46) spd = 0;                              // idle at heel
+      if (spd > 0) { this.x += Math.cos(this.angle) * spd * dt; this.y += Math.sin(this.angle) * spd * dt; }
+      this.x = T.clamp(this.x, 8, G.arena.w - 8); this.y = T.clamp(this.y, 8, G.arena.h - 8);
+      if (best && dToT < best.def.r + 13 && this.atk <= 0) {
+        this.atk = d.atkCd;
+        best.takeDamage(d.dmg, this.angle, G, { kb: d.kb || 60, crit: T.chance(0.15) });
+        G.particles.blood(best.x, best.y, this.angle, 5);
+        if (d.big) G.particles.shakeBy(2);
+        T.Audio.melee();
+      }
+    }
+    draw(ctx) {
+      const ranged = this.def.kind === 'ranged';
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath(); ctx.ellipse(this.x, this.y + (ranged ? 9 : this.def.big ? 8 : 6), this.def.big ? 13 : 9, 4, 0, 0, T.TAU); ctx.fill();
+      ctx.save();
+      ctx.translate(this.x, ranged ? this.y - 8 + this.bob : this.y); ctx.rotate(this.angle);
+      T.Sprites.drawPet(ctx, this);
+      ctx.restore();
+    }
+  }
+  T.Pet = Pet;
 
 })(window.TAC);

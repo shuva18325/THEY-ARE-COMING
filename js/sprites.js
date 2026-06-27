@@ -26,6 +26,7 @@
     const fam = w.fam;
     const lenMap = { Pistol:9, SMG:13, Rifle:18, Shotgun:15, Sniper:24, LMG:19, Special:16, Melee:14 };
     let L = lenMap[fam] || 14;
+    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20 }[id] || 14;
     const H = 9, axis = 4;
     const { c, x } = cv(L + 2, H + 2);
     const ox = 1, oy = 1;
@@ -95,6 +96,15 @@
         P(L - 7, axis - 1, 7, 4, GUN_DK);          // fat tube
         P(L - 6, axis, 6, 2, '#3a3d40');
         grip(4); P(5, axis + 2, 2, 3, GUN_DK);
+      } else if (w.bullet === 'rocket') {
+        P(1, axis - 2, L - 4, 5, '#3a4a2a');       // launch tube
+        P(1, axis - 2, L - 4, 1, '#5a6a3a');
+        P(1, axis + 2, L - 4, 1, '#1a2410');
+        P(L - 5, axis - 1, 4, 2, '#b51d1d');       // warhead
+        P(L - 2, axis - 1, 2, 2, '#e8632a');
+        P(0, axis - 2, 2, 5, '#222');              // back/exhaust
+        P(4, axis - 4, 2, 2, '#2a2a2a');           // sight
+        grip(5);
       } else { // crossbow
         P(L - 4, axis - 4, 1, 9, '#3a2a1a');       // limbs
         P(L - 5, axis - 4, 2, 2, '#222'); P(L - 5, axis + 2, 2, 2, '#222');
@@ -104,11 +114,23 @@
         P(L - 1, axis, 1, 1, '#ccc');              // bolt tip
       }
     } else if (fam === 'Melee') {
-      if (id === 'melee_bat') {
+      if (id === 'melee_knife') {
+        P(2, axis, 3, 1, '#2a2018'); P(5, axis - 1, L - 5, 2, '#c8ccd0'); P(5, axis - 1, L - 5, 1, '#eef'); P(L - 1, axis - 1, 1, 1, '#fff');
+      } else if (id === 'melee_bat') {
         P(2, axis, 6, 1, WOOD); P(8, axis - 1, L - 8, 3, '#b0b0a0'); P(8, axis - 1, L - 8, 1, '#d8d8c8');
       } else if (id === 'melee_axe') {
         P(2, axis, L - 4, 1, WOOD); P(L - 5, axis - 3, 4, 7, '#c8ccd0'); P(L - 5, axis - 3, 4, 1, '#e8ecf0'); P(L - 6, axis - 1, 1, 3, '#888');
-      } else {
+      } else if (id === 'melee_spear') {
+        P(2, axis, L - 5, 1, '#5a4126'); P(2, axis, 6, 1, '#7a5a33'); P(L - 5, axis - 1, 3, 2, '#c8ccd0'); P(L - 2, axis - 1, 2, 1, '#eef'); P(L - 1, axis, 1, 1, '#fff');
+      } else if (id === 'melee_sledge') {
+        P(2, axis, L - 5, 1, '#3a2a1a'); P(L - 6, axis - 3, 5, 7, '#6a6f78'); P(L - 6, axis - 3, 5, 1, '#9aa0a8'); P(L - 6, axis + 3, 5, 1, '#3a3f48');
+      } else if (id === 'melee_katana') {
+        P(2, axis, 4, 1, '#1a1a1a'); P(2, axis, 1, 1, '#7a1f1f'); P(4, axis, 1, 1, '#7a1f1f');
+        P(6, axis - 1, 1, 3, '#caa84a'); P(7, axis - 1, L - 7, 2, '#dfe6ee'); P(7, axis - 1, L - 7, 1, '#fff'); P(L - 1, axis - 2, 1, 2, '#fff');
+      } else if (id === 'melee_chainsaw') {
+        P(2, axis - 2, 6, 5, '#c84a1a'); P(2, axis - 2, 6, 1, '#e87a3a'); P(3, axis + 2, 2, 2, '#1a1a1a');
+        P(8, axis - 1, L - 8, 2, '#9aa0a8'); for (let i = 8; i < L; i += 2) P(i, axis - 2, 1, 1, '#555'); P(L - 1, axis - 1, 1, 2, '#777');
+      } else { // machete
         P(2, axis, 4, 1, '#3a2a1a'); P(6, axis - 1, L - 6, 2, '#c8ccd0'); P(6, axis - 1, L - 6, 1, '#e8ecf0');
       }
     }
@@ -304,6 +326,64 @@
     ctx.fillStyle = '#e8e0d0'; ctx.fillRect(r * 1.7, -r * 0.1, r * 0.3, 1);
   }
 
+  // ---------------- PETS / COMPANIONS (top-down, facing +x) ----------------
+  S.drawPet = function (ctx, pet) {
+    const d = pet.def, OL = '#0c0e0a';
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    if (d.kind === 'ranged') { drawDrone(ctx, pet, OL); ctx.restore(); return; }
+    const sway = Math.sin(pet.animPhase || 0) * 1.5;
+    const base = d.color, dk = shade(base, -0.3), lt = shade(base, 0.14);
+    const r = d.big ? 12 : (d.leap ? 9 : 8);
+    // body
+    ctx.fillStyle = OL; roundRect(ctx, -r * 1.5, -r * 0.85, r * 3.0, r * 1.7, r * 0.55);
+    ctx.fillStyle = base; roundRect(ctx, -r * 1.4, -r * 0.75, r * 2.8, r * 1.5, r * 0.5);
+    ctx.fillStyle = lt; roundRect(ctx, -r * 1.2, -r * 0.65, r * 2.2, r * 0.45, r * 0.3);
+    ctx.fillStyle = dk; roundRect(ctx, -r * 1.3, r * 0.1, r * 2.5, r * 0.55, r * 0.3);
+    if (d.leap) { ctx.fillStyle = '#2a1a10'; for (let i = -1; i < 3; i++) ctx.fillRect(-r * 0.6 + i * r * 0.55, -r * 0.7, 1.5, r * 1.4); }
+    if (d.big) { ctx.fillStyle = '#3a3f48'; ctx.fillRect(r * 0.2, -r * 0.8, r * 0.5, r * 1.6); ctx.fillStyle = '#caa84a'; ctx.fillRect(r * 0.35, -r * 0.2, 2, 2); }
+    else { ctx.fillStyle = '#b51d1d'; ctx.fillRect(r * 0.5, -r * 0.7, 2, r * 1.4); } // collar
+    // legs
+    ctx.fillStyle = dk;
+    ctx.fillRect(-r * 1.0, -r * 0.9 + sway, 2.4, 4); ctx.fillRect(r * 0.6, -r * 0.9 - sway, 2.4, 4);
+    ctx.fillRect(-r * 1.0, r * 0.6 - sway, 2.4, 4); ctx.fillRect(r * 0.6, r * 0.6 + sway, 2.4, 4);
+    // head
+    const hx = r * 1.3;
+    roundDot(ctx, hx, 0, r * 0.66, OL); roundDot(ctx, hx, 0, r * 0.6, shade(base, 0.05));
+    if (d.big) { roundDot(ctx, hx - r * 0.2, -r * 0.6, 2.4, base); roundDot(ctx, hx - r * 0.2, r * 0.6, 2.4, base); }
+    else { ctx.fillStyle = dk; ctx.fillRect(hx - r * 0.3, -r * 0.75, 2.5, 3); ctx.fillRect(hx - r * 0.3, r * 0.5, 2.5, 3); }
+    ctx.fillStyle = '#2a1a14'; ctx.fillRect(hx + r * 0.45, -r * 0.25, r * 0.45, r * 0.5);  // snout
+    ctx.fillStyle = '#caa84a'; ctx.fillRect(hx + r * 0.12, -r * 0.3, 1.8, 1.8); ctx.fillRect(hx + r * 0.12, r * 0.14, 1.8, 1.8); // amber eyes
+    ctx.fillStyle = '#e8e0d0'; ctx.fillRect(hx + r * 0.7, 0, r * 0.3, 1);  // teeth
+    ctx.restore();
+  };
+  function drawDrone(ctx, pet, OL) {
+    ctx.fillStyle = 'rgba(150,200,255,0.12)'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, T.TAU); ctx.fill(); // hover glow
+    ctx.strokeStyle = 'rgba(180,200,220,0.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(8, 6); ctx.moveTo(-8, 6); ctx.lineTo(8, -6); ctx.stroke();
+    ctx.fillStyle = '#888'; ctx.fillRect(-9, -7, 3, 2); ctx.fillRect(6, -7, 3, 2); ctx.fillRect(-9, 5, 3, 2); ctx.fillRect(6, 5, 3, 2);
+    ctx.fillStyle = OL; roundRect(ctx, -6, -4, 12, 8, 2);
+    ctx.fillStyle = pet.def.color; roundRect(ctx, -5, -3, 10, 6, 2);
+    ctx.fillStyle = shade(pet.def.color, 0.2); ctx.fillRect(-5, -3, 10, 1);
+    ctx.fillStyle = '#ff3020'; ctx.fillRect(3, -1, 2, 2);            // sensor eye
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(5, -1, 6, 2);           // gun barrel
+  }
+  function drawPetIcon(x, id, size) {
+    const p = T.PETS[id], sc = size / 40, col = p.color;
+    if (p.kind === 'ranged') {
+      x.strokeStyle = 'rgba(180,200,220,0.6)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(-12 * sc, -9 * sc); x.lineTo(12 * sc, 9 * sc); x.moveTo(-12 * sc, 9 * sc); x.lineTo(12 * sc, -9 * sc); x.stroke();
+      x.fillStyle = col; roundRect(x, -8 * sc, -5 * sc, 16 * sc, 10 * sc, 2);
+      x.fillStyle = '#ff3020'; x.fillRect(3 * sc, -1 * sc, 3 * sc, 3 * sc);
+      x.fillStyle = '#1a1a1a'; x.fillRect(7 * sc, -1 * sc, 5 * sc, 2 * sc);
+    } else {
+      x.fillStyle = col; roundDot(x, 0, 2 * sc, 10 * sc, col);
+      x.fillStyle = shade(col, -0.3); x.fillRect(-9 * sc, -8 * sc, 4 * sc, 5 * sc); x.fillRect(5 * sc, -8 * sc, 4 * sc, 5 * sc);
+      if (p.leap) { x.fillStyle = '#2a1a10'; x.fillRect(-4 * sc, -6 * sc, 1.5, 12 * sc); x.fillRect(2 * sc, -6 * sc, 1.5, 12 * sc); }
+      x.fillStyle = '#caa84a'; x.fillRect(-5 * sc, 0, 2.5, 2.5); x.fillRect(3 * sc, 0, 2.5, 2.5);
+      x.fillStyle = '#2a1a14'; x.fillRect(-2 * sc, 6 * sc, 4 * sc, 4 * sc);
+    }
+  }
+
   // ---------------- FRONT-FACING PORTRAITS ----------------
   // detailed standing survivor for the loadout preview (matches the reference art)
   S.drawPlayerPortrait = function (ctx, gear, gunId) {
@@ -467,6 +547,8 @@
       drawItemIcon(x, id, size);
     } else if (kind === 'attach') {
       x.fillStyle = '#3a3d40'; x.fillRect(-8, -3, 16, 6); x.fillStyle = '#5fc6e8'; x.fillRect(-8, -3, 16, 1);
+    } else if (kind === 'pet') {
+      drawPetIcon(x, id, size);
     }
     x.restore();
     ICON_CACHE[key] = c;

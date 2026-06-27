@@ -11,7 +11,16 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ---
 
+## ▶ Play it live
+
+**https://shuva18325.github.io/THEY-ARE-COMING/** — runs right in the browser.
+*(Left-click = melee/stab, Right-click = shoot, WASD = move.)*
+
 ## 📸 Screenshots
+
+| Samurai armor + RPG + a **pet tiger** | Pets shop (K-9 / bear / tiger / drone) | RPG rocket + pet in combat |
+|---|---|---|
+| ![samurai](screenshots/17_samurai_loadout.png) | ![pets](screenshots/18_pets_shop.png) | ![rocket](screenshots/20_rocket_pet_combat.png) |
 
 | The survivor & **Crazy Dave** (shop merchant) | Detailed zombies |
 |---|---|
@@ -53,8 +62,8 @@ audio unlocks cleanly.)
 |---|---|
 | **WASD** | Move in all directions |
 | **Mouse** | Aim — the operative always faces the cursor |
+| **LEFT-CLICK** | **Melee / stab** (your equipped melee weapon) |
 | **RIGHT-CLICK** | **Fire the weapon** (hold for automatics) |
-| *Left-click* | *Nothing — disabled by design* |
 | **R** | Reload |
 | **Shift** | Sprint (drains stamina) |
 | **Q** | Swap primary / secondary |

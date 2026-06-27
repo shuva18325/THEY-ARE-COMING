@@ -18,7 +18,7 @@
       this.state = null; this.mode = 'menu';
       this.wave = 1; this.score = 0; this.kills = 0;
       this.zombies = []; this.bullets = []; this.traps = []; this.turrets = [];
-      this.throwables = []; this.hazards = []; this.props = [];
+      this.throwables = []; this.hazards = []; this.props = []; this.pets = [];
       this.damageFlash = 0; this.meleeSlash = null;
       this.ui = new T.UI(this);
       T.Input.init(this.canvas);
@@ -42,10 +42,11 @@
     // ---------- derived stats ----------
     computeStats() {
       const eq = this.state.equipped;
-      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1 };
+      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1, meleeMult: 1 };
       ['helmet', 'chest', 'legs', 'boots', 'gloves', 'backpack'].forEach(slot => {
         const id = eq[slot]; if (!id) return; const a = T.ARMOR[id]; if (!a) return;
         if (a.armor) s.armor += a.armor;
+        if (a.melee) s.meleeMult += a.melee;
         if (a.hp) s.maxHp += a.hp;
         if (a.spd) s.speed *= (1 + a.spd);
         if (a.reload) s.reloadMul *= (1 - a.reload);
@@ -111,7 +112,8 @@
       this.player = new T.Player(this.arena.w / 2, this.arena.h / 2);
       this.player.initFromLoadout(stats, gear, ammo, eq);
       this.zombies.length = 0; this.bullets.length = 0; this.traps.length = 0;
-      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0;
+      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0; this.pets.length = 0;
+      if (eq.pet && T.PETS[eq.pet]) this.pets.push(new T.Pet(this.player.x + 20, this.player.y + 12, eq.pet));
       this.particles.clear();
       this.buildEnvironment();
       this.startWave();
@@ -257,7 +259,7 @@
       if (T.Input.justPressed('q')) p.swap(this);
       if (T.Input.justPressed('r')) p.reload(this);
       if (T.Input.justPressed('e')) p.placeTrap(this);
-      if (T.Input.justPressed('f')) p.doMelee(this);
+      if (T.Input.justPressed('f') || T.Input.stabbing) p.doMelee(this);
       if (T.Input.justPressed(' ')) p.useConsumable(this);
       for (let i = 1; i <= 4; i++) if (T.Input.justPressed('' + i)) { if (p.belt[i - 1] != null) { p.beltIndex = i - 1; this.ui.updateBelt(); } }
 
@@ -265,6 +267,7 @@
       this.spawnTick(dt);
 
       for (const z of this.zombies) if (!z.dead) z.update(dt, this);
+      for (const pet of this.pets) pet.update(dt, this);
       for (const b of this.bullets) b.update(dt, this);
       for (const t of this.traps) t.update(dt, this);
       for (const t of this.turrets) t.update(dt, this);
@@ -346,12 +349,14 @@
       for (const pr of this.props) drawList.push({ y: pr.y, t: 'prop', o: pr });
       for (const z of this.zombies) drawList.push({ y: z.y, t: 'z', o: z });
       for (const tu of this.turrets) drawList.push({ y: tu.y, t: 'tu', o: tu });
+      for (const pet of this.pets) drawList.push({ y: pet.y, t: 'pet', o: pet });
       drawList.push({ y: this.player.y, t: 'p', o: this.player });
       drawList.sort((a, b) => a.y - b.y);
       for (const d of drawList) {
         if (d.t === 'prop') this.drawProp(x, d.o);
         else if (d.t === 'z') d.o.draw(x);
         else if (d.t === 'tu') d.o.draw(x);
+        else if (d.t === 'pet') d.o.draw(x);
         else this.player.draw(x, this);
       }
       // melee slash
