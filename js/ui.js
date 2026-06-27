@@ -10,6 +10,9 @@
       this.invFilter = 'all';
       this.shopCat = 'Rifle';
       this.shopSel = null;
+      this.daveSeen = false;
+      this.daveTimer = null;
+      this.daveEye = 0;
       this.bind();
     }
 
@@ -35,7 +38,7 @@
       const G = this.G;
       $('#btnStart').onclick = () => { T.Audio.unlock(); T.Audio.buy(); G.toHub(); };
       $('#btnHowto').onclick = () => $('#howto').classList.toggle('hidden');
-      $('#btnDeploy').onclick = () => { T.Audio.buy(); G.deploy(); };
+      $('#btnDeploy').onclick = () => { T.Audio.buy(); this.daveComment('deploy'); this.daveAnimStop(); setTimeout(() => G.deploy(), 650); };
       $('#btnContinue').onclick = () => { T.Audio.buy(); G.toHub(); };
       $('#btnRestart').onclick = () => { T.Audio.buy(); G.restart(); };
 
@@ -60,6 +63,51 @@
       this.renderShop();
     }
 
+    // ---------------- CRAZY DAVE (shop merchant) ----------------
+    renderDavePortrait(blink) {
+      const c = $('#davePortrait'); if (!c) return; const x = c.getContext('2d');
+      x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
+      x.save(); x.translate(c.width / 2, c.height / 2 + 8); x.scale(2.0, 2.0);
+      T.Sprites.drawDavePortrait(x, 0, this.daveEye, blink);
+      x.restore();
+    }
+    daveAnimStart() {
+      this.daveAnimStop();
+      this.daveTimer = setInterval(() => {
+        this.daveEye = T.pick([-1, 0, 0, 1, 0]);
+        const blink = T.chance(0.2);
+        this.renderDavePortrait(blink);
+        if (blink) setTimeout(() => this.renderDavePortrait(false), 130);
+      }, 650);
+    }
+    daveAnimStop() { if (this.daveTimer) { clearInterval(this.daveTimer); this.daveTimer = null; } }
+    daveReplyPool() {
+      const pool = T.DAVE.replies.slice();
+      for (let i = pool.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0;[pool[i], pool[j]] = [pool[j], pool[i]]; }
+      return pool.slice(0, 3);
+    }
+    daveSay(line, replies) {
+      const ln = $('#daveLine'); if (!ln) return;
+      ln.textContent = '“' + line + '”';
+      const rw = $('#daveReplies'); rw.innerHTML = '';
+      (replies || this.daveReplyPool()).forEach(rp => {
+        const b = el('button', 'dave-reply', rp.t);
+        b.onclick = () => { T.Audio.tone(300, 0.04, 'square', 0.06); this.daveSay(rp.r, this.daveReplyPool()); };
+        rw.appendChild(b);
+      });
+      this.renderDavePortrait(false);
+      T.Audio.tone(210 + Math.random() * 90, 0.05, 'square', 0.05);
+    }
+    daveGreet() {
+      const ctx = this.daveSeen ? 'return' : 'enter';
+      this.daveSeen = true;
+      const n = Math.max(1, this.G.wave - 1);
+      const line = T.pick(T.DAVE[ctx]).replace('{n}', n);
+      this.daveSay(line, this.daveReplyPool());
+      this.daveAnimStart();
+    }
+    daveComment(kind) { if (T.DAVE[kind]) this.daveSay(T.pick(T.DAVE[kind]), this.daveReplyPool()); }
+
     // ---------------- LOADOUT ----------------
     renderLoadout() {
       this.renderCharPreview();
@@ -74,16 +122,13 @@
       x.imageSmoothingEnabled = false;
       x.clearRect(0, 0, c.width, c.height);
       // floor pad
-      x.fillStyle = '#1a1f17'; x.beginPath(); x.ellipse(c.width / 2, c.height - 50, 70, 24, 0, 0, T.TAU); x.fill();
-      const stats = this.G.computeStats();
+      x.fillStyle = '#171c14'; x.beginPath(); x.ellipse(c.width / 2, 250, 62, 13, 0, 0, T.TAU); x.fill();
       const gear = this.G.gearColors();
       const eq = this.G.state.equipped;
-      const fake = { gear, heldGun: eq.primary || eq.secondary, recoilKick: 0, walkPhase: 0, moving: false, meleeAnim: 0 };
       x.save();
-      x.translate(c.width / 2, c.height - 70);
-      x.scale(7, 7);
-      x.rotate(Math.PI / 2); // face "down" toward viewer-ish
-      T.Sprites.drawPlayer(x, fake);
+      x.translate(c.width / 2, 150);
+      x.scale(4.4, 4.4);
+      T.Sprites.drawPlayerPortrait(x, gear, eq.primary || eq.secondary);
       x.restore();
     }
 
@@ -250,13 +295,14 @@
         const def = T.lookup(id);
         const r = def.rarity || 'common';
         const owned = this.isOwnedUnique(id);
-        const card = el('div', 'card r-' + r);
+        const locked = this.isLocked(id);
+        const card = el('div', 'card r-' + r + (locked ? ' locked' : ''));
         card.appendChild(T.Sprites.icon(id, 34));
         const cost = def.cost ? def.cost + ' ◆' : '$' + def.price;
         const info = el('div', 'ci');
         info.innerHTML = `<div class="cname">${def.name}</div><div class="ctype">${this.shopTypeLabel(id)}</div>`;
         card.appendChild(info);
-        card.appendChild(el('div', 'cprice', owned ? '✓' : cost));
+        card.appendChild(el('div', 'cprice', owned ? '✓' : (locked ? '🔒 W' + this.lockWave(id) : cost)));
         card.onclick = () => { this.shopSel = id; this.renderShopDetail(); T.Audio.tone(360, 0.03, 'square', 0.05); };
         iw.appendChild(card);
       });
@@ -274,12 +320,14 @@
       return '';
     }
 
+    lockWave(id) {
+      if (T.kindOf(id) === 'attach') return 1;
+      const d = T.lookup(id);
+      return { common: 1, uncommon: 1, rare: 3, epic: 6, legendary: 10 }[d.rarity || 'common'] || 1;
+    }
+    isLocked(id) { return this.G.wave < this.lockWave(id); }
+
     shopItemsFor(cat) {
-      const wave = this.G.wave;
-      const rarityOk = r => {
-        const min = { common: 1, uncommon: 1, rare: 3, epic: 6, legendary: 10 }[r] || 1;
-        return wave >= min;
-      };
       let ids = [];
       if (['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special'].includes(cat)) {
         ids = Object.keys(T.WEAPONS).filter(id => T.WEAPONS[id].fam === cat);
@@ -287,7 +335,8 @@
       else if (cat === 'Utility') ids = Object.keys(T.ITEMS);
       else if (cat === 'Armor') ids = Object.keys(T.ARMOR);
       else if (cat === 'Attachments') ids = Object.keys(T.ATTACHMENTS);
-      return ids.filter(id => { const d = T.lookup(id); return cat === 'Attachments' ? true : rarityOk(d.rarity || 'common'); });
+      // available first, then by price
+      return ids.sort((a, b) => (this.lockWave(a) - this.lockWave(b)) || ((T.lookup(a).price || 0) - (T.lookup(b).price || 0)));
     }
 
     isOwnedUnique(id) {
@@ -315,7 +364,10 @@
       const owned = this.isOwnedUnique(id);
       const row = el('div', 'buyrow');
       if (owned) row.appendChild(el('span', 'owned-tag', '✓ OWNED'));
-      else {
+      else if (this.isLocked(id)) {
+        const b = el('button', 'btn', '🔒 UNLOCKS AT WAVE ' + this.lockWave(id));
+        b.disabled = true; b.style.opacity = .5; row.appendChild(b);
+      } else {
         const useSalvage = !!def.cost;
         const price = useSalvage ? def.cost : def.price;
         const can = useSalvage ? this.G.state.salvage >= price : this.G.state.cash >= price;
@@ -388,6 +440,7 @@
       else if (kind === 'item') { o.items[id] = (o.items[id] || 0) + 1; }
       else if (kind === 'attach') { o.attachUnlocked = o.attachUnlocked || []; if (!o.attachUnlocked.includes(id)) o.attachUnlocked.push(id); }
       T.Audio.buy();
+      this.daveComment('buy');
       this.renderShop();
       $('#hubCash').textContent = T.fmt(G.state.cash);
       $('#hubSalvage').textContent = G.state.salvage;

@@ -106,6 +106,17 @@ Extended Mag · Suppressor · Red Dot · Long Barrel · Quickdraw Grip ·
 Hollow‑Point Rounds · AP Rounds · Incendiary Rounds. Each occupies one of a
 weapon's **attachment slots** and modifies stats (see §7 Stat Model).
 
+Stock is **unlock‑gated by wave** (locked items still show, greyed, with the
+wave they unlock at) so the shop reveals more lethal toys as you go deeper.
+
+### The Shopkeeper — "Crazy Dave"
+The shop is run by **Crazy Dave**, a saucepan‑hatted, wild‑eyed travelling arms
+dealer who lives beside the storefront. He greets you, reacts to your purchases
+and deployments, and throws out cryptic, manic one‑liners ("I can make you
+SURVIVE... for a PRICE. Heh heh heh."). The player can **reply** via dialogue
+chips and Dave fires back — pure flavor that sells the gallows‑humor tone
+between the killing.
+
 ---
 
 ## 3. SUIT‑UP / LOADOUT STAGE
@@ -180,6 +191,7 @@ darkness and the player's flashlight/muzzle‑light contribution.
 - **Gritty survival‑horror tone:** desaturated bases, sickly greens, blood reds, cold blues, with high‑contrast warm light sources (fire, muzzle flash).
 - **Blood & debris** persist on the ground (decals) within a budget.
 - **Lighting:** ambient darkness + additive light blobs (muzzle flash, fire, explosions, flashlight cone).
+- **The protagonist:** a hardened survivor in a **camo knit helmet, glowing orange goggles, a grey gas mask, a ragged camo jacket and a blue field pack** — desaturated and grimy, with a hard black outline for crisp readability. Zombies share the exact same rendering language (outline + top‑light/bottom‑shade + exposed wounds + glowing eyes) so the cast reads as one cohesive, gritty world.
 - **Gear is visible:** equipping armor/weapons **redraws the player sprite** (helmet, chest, pants, boots, backpack, held gun all change).
 - **Palette discipline:** ~16‑color master ramp per environment for cohesion (matches the gunmetal weapon sheet aesthetic).
 - UI: chunky wooden/metal panels, pixel font, rarity‑colored item frames (inspired by the equipment‑screen reference).

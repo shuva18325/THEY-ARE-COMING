@@ -35,8 +35,9 @@
       this.mode = 'hub';
       this.ui.showScreen('hub');
       this.ui.renderHub();
+      this.ui.daveGreet();
     }
-    restart() { this.state = this.freshState(); this.wave = 1; this.score = 0; this.kills = 0; this.toHub(); }
+    restart() { this.state = this.freshState(); this.wave = 1; this.score = 0; this.kills = 0; this.ui.daveSeen = false; this.toHub(); }
 
     // ---------- derived stats ----------
     computeStats() {
@@ -68,7 +69,7 @@
         legs: col('legs', '#2a3a55'),
         boots: col('boots', '#222'),
         gloves: col('gloves', '#2a2a2a'),
-        pack: col('backpack', '#3a3a2a'),
+        pack: col('backpack', '#3a4a6a'),
       };
     }
 

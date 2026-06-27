@@ -92,8 +92,8 @@
     gloves_tac:    { name:'Tactical Gloves',  slot:'gloves', rarity:'uncommon', price:400,  reload:0.12, color:'#222', desc:'Padded tac gloves. +12% reload speed.' },
     gloves_reload: { name:'Reload Gloves',    slot:'gloves', rarity:'rare',     price:1100, reload:0.25, crit:0.05, color:'#3a2a2a', desc:'Speed-loaders sewn in. +25% reload, +5% crit.' },
     // BACKPACK
-    pack_small: { name:'Small Pack',     slot:'backpack', rarity:'common',   price:0,    trapSlots:1, beltSlots:2, color:'#3a3a2a', desc:'A school backpack. 1 trap, 2 consumables.' },
-    pack_tac:   { name:'Tactical Pack',  slot:'backpack', rarity:'uncommon', price:700,  trapSlots:2, beltSlots:3, ammo:0.20, color:'#2a3a2a', desc:'MOLLE webbing. 2 traps, 3 consumables, +20% ammo.' },
+    pack_small: { name:'Small Pack',     slot:'backpack', rarity:'common',   price:0,    trapSlots:1, beltSlots:2, color:'#3a4a6a', desc:'A worn blue backpack. 1 trap, 2 consumables.' },
+    pack_tac:   { name:'Tactical Pack',  slot:'backpack', rarity:'uncommon', price:700,  trapSlots:2, beltSlots:3, ammo:0.20, color:'#2f3f55', desc:'MOLLE webbing. 2 traps, 3 consumables, +20% ammo.' },
     pack_heavy: { name:'Heavy Rucksack', slot:'backpack', rarity:'rare',     price:1600, trapSlots:3, beltSlots:4, ammo:0.50, spd:-0.04, color:'#3a2a20', desc:'Hauls everything. 3 traps, 4 consumables, +50% ammo.' },
   };
 
@@ -165,6 +165,52 @@
       trapSlot: [],          // trap ids loaded
       belt: ['item_bandage'],// consumable ids loaded
     },
+  };
+
+  // ---------- CRAZY DAVE — travelling arms dealer (dialogue) ----------
+  T.DAVE = {
+    enter: [
+      "WABBY-WABBO! Heh— I mean, WELCOME, survivor! Step into Dave's Emporium of Doom!",
+      "I can make you SURVIVE... for a price. Heh heh heh heh.",
+      "You smell that? That's COMMERCE. And zombies. Mostly zombies.",
+      "Guns! Traps! Questionable medicine! Dave's got it ALL, friend!",
+      "I traded my house for these guns. I don't remember owning a house. WORTH IT.",
+    ],
+    return: [
+      "You're ALIVE?! Heh! I had twenty bucks on the horde. Spend your blood money!",
+      "Still breathing? DISGUSTING. I love it. The shop is OPEN, killer.",
+      "Wave {n} cleared! The dead are just gettin' warmed up. Gear up!",
+      "Welcome back to the land of the NOT-eaten! What're we buyin'?",
+      "Ohh you survived AGAIN. Stop makin' me lose bets and BUY somethin'!",
+    ],
+    buy: [
+      "AH HA HA! A FINE choice! Or a TERRIBLE one! Who's to say!",
+      "SOLD! No refunds, no returns, no survivors— I mean, no PROBLEM!",
+      "That'll kill somethin'. Probably a zombie. PROBABLY.",
+      "Cha-CHING! That's the sound my brain makes now. Heh.",
+      "Ooo, good weight on that one. Feels like REGRET. And freedom!",
+    ],
+    deploy: [
+      "Go give 'em the ol' LEAD SANDWICH! Heh heh heh!",
+      "Try not to die. It's REAL bad for repeat business.",
+      "They're coming. They're ALWAYS coming. NOW GO!",
+      "Make 'em DANCE, survivor! The bullet dance! GO GO GO!",
+    ],
+    poor: [
+      "No cash, no boomstick! Go make some corpses — they pay GREAT!",
+      "Your wallet's emptier than a zombie's skull. Come back RICHER!",
+    ],
+    // player replies -> Dave's retort
+    replies: [
+      { t: "Who ARE you?",        r: "Name's Dave. CRAZY Dave! The suburbs called me that. Then the suburbs got EATEN." },
+      { t: "Is this stuff safe?", r: "SAFE?! HAAA! Nothing's safe! But it's CHEAP-ish! Mostly! Probably!" },
+      { t: "Got any tips?",       r: "Aim for the head. Or the legs. Or just... shoot a LOT. That's the Dave Method™." },
+      { t: "You're insane.",      r: "CLINICALLY! But my PRICES are sane. Mostly. Heh heh." },
+      { t: "Just let me shop.",   r: "Rude. I RESPECT it. Browse away, you beautiful disaster." },
+      { t: "Where'd you get all this?", r: "Don't ask where the guns came from. Or the previous owners. Just... DON'T." },
+      { t: "What's with the pan?", r: "The pan PROTECTS me! From zombies! From the SKY! From the GOVERNMENT! ...Mostly the sky." },
+      { t: "I'll take everything.", r: "A man of TASTE and POOR impulse control! My FAVORITE kind of customer!" },
+    ],
   };
 
   // unified lookup helper

@@ -13,17 +13,22 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ## 📸 Screenshots
 
-| Title screen | Suit-Up / Loadout | Shop |
-|---|---|---|
-| ![menu](screenshots/01_menu.png) | ![loadout](screenshots/04_loadout_equipped.png) | ![shop](screenshots/03b_shop_detail.png) |
-
-| Combat — muzzle flash & tracers | Night battle (fire + toxic) | Boss wave — The Behemoth |
-|---|---|---|
-| ![combat](screenshots/06_combat_a.png) | ![night](screenshots/09_night_battle.png) | ![boss](screenshots/10_boss.png) |
-
-| Wave cleared | You were overrun |
+| The survivor & **Crazy Dave** (shop merchant) | Detailed zombies |
 |---|---|
-| ![clear](screenshots/11_wave_complete.png) | ![dead](screenshots/12_game_over.png) |
+| ![loadout](screenshots/13_loadout_newchar.png) | ![zombies](screenshots/16_combat_newsprites.png) |
+
+The protagonist is drawn to match the gritty reference art — camo knit helmet,
+glowing orange goggles, gas mask, ragged camo jacket, blue pack — and every gear
+slot redraws him. **Crazy Dave** lives by the shop with branching banter ("I can
+make you SURVIVE... for a price"); click a reply to talk back.
+
+| Title screen | Shop (with unlock-gated stock) | Combat — muzzle flash & tracers |
+|---|---|---|
+| ![menu](screenshots/01_menu.png) | ![shop](screenshots/15_shop_dave.png) | ![combat](screenshots/06_combat_a.png) |
+
+| Night battle (fire + toxic) | Boss wave — The Behemoth | Wave cleared |
+|---|---|---|
+| ![night](screenshots/09_night_battle.png) | ![boss](screenshots/10_boss.png) | ![clear](screenshots/11_wave_complete.png) |
 
 ---
 
