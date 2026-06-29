@@ -152,6 +152,8 @@
       this.mode = 'play';
       this.ui.showScreen('hud');
       this.ui.updateBelt();
+      // clear any stuck input from the menus so you never start a round mid-drift
+      T.Input.keys = {}; T.Input.firing = false; T.Input.stabbing = false; T.Input.pressed = {};
     }
 
     buildEnvironment() {

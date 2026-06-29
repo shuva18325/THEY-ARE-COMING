@@ -72,7 +72,7 @@
           const L = this.G.state.love;
           mk('♥ Flirt', () => this.squadTalk(cid, 'flirt'));
           if (L.pts >= 50 && !L.kissed) mk('💋 Kiss', () => this.squadMilestone('kiss'));
-          if (L.pts >= 80 && !L.intimate) mk('🌙 Private Time', () => this.squadMilestone('intimate'));
+          if (L.kissed && !L.intimate) mk('🍑 Fun Time', () => this.squadMilestone('intimate')); // unlocks once dating
           if (L.pts >= 100 && !L.married) mk('💍 Propose', () => this.squadMilestone('marry'));
         }
         info.appendChild(btns); row.appendChild(info); wrap.appendChild(row);
@@ -92,7 +92,7 @@
     squadMilestone(kind) {
       const L = this.G.state.love; let line;
       if (kind === 'kiss') { L.kissed = true; L.pts = Math.min(100, L.pts + 8); line = 'You lean across the bus seat and kiss her. She smiles against your lips. “…About time, soldier.” ♥'; }
-      else if (kind === 'intimate') { L.intimate = true; L.pts = 100; line = 'Dave parks the bus for the night and politely looks away. You two get some… private time in the back. 🌙'; }
+      else if (kind === 'intimate') { L.intimate = true; L.pts = 100; line = 'You two slip behind the curtain at the back of the bus. Dave cranks the radio up and stares VERY hard at the road. 🍑🌙  …(some things are best left off-screen).'; }
       else if (kind === 'marry') { L.married = true; L.pts = 100; line = 'You propose right there in the aisle. Dave slams the horn in celebration. “YES — a thousand times yes!” 💍'; }
       this.renderSquadList();
       const ln = $('#line_comp_medic'); if (ln) ln.textContent = '“' + line + '”';

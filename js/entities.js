@@ -512,7 +512,7 @@
       G.particles.muzzle(mx, my, this.angle, w.fam === 'Shotgun' || w.fam === 'LMG' ? 1.4 : 1);
       if (w.bullet === 'lightning') { G.particles.smoke(mx, my, 3, 'rgba(190,200,210,0.45)'); G.particles.light(mx, my, 26, 'rgba(159,232,255,0.6)', 0.08); }
       this.recoilKick = Math.min(4, w.recoil * 0.6);
-      this.kbx -= Math.cos(this.angle) * w.recoil * 1.5; this.kby -= Math.sin(this.angle) * w.recoil * 1.5;
+      this.kbx -= Math.cos(this.angle) * w.recoil * 0.7; this.kby -= Math.sin(this.angle) * w.recoil * 0.7;
       G.particles.shakeBy(w.recoil * 0.25);
       if (!w._silent) T.Audio.shot(w.fam); else T.Audio.tone(400, 0.04, 'square', 0.05);
       // shell casing
@@ -538,7 +538,7 @@
       if (this.meleeCd > 0) return;
       const id = this.eq.melee; if (!id) return; const w = T.WEAPONS[id];
       this.meleeCd = w.swing; this.meleeAnim = 1; T.Audio.melee();
-      if (w.lunge) { this.kbx += Math.cos(this.angle) * 460; this.kby += Math.sin(this.angle) * 460; G.particles.shakeBy(3); G.particles.light(this.x, this.y, 36, 'rgba(255,210,90,0.5)', 0.18); }
+      if (w.lunge && Math.hypot(this.kbx, this.kby) < 140) { this.kbx += Math.cos(this.angle) * 320; this.kby += Math.sin(this.angle) * 320; G.particles.shakeBy(3); G.particles.light(this.x, this.y, 36, 'rgba(255,210,90,0.5)', 0.18); }
       let hit = false;
       const rng = w.range * (w.lunge ? 1.1 : 1);
       for (const z of G.zombies) {
@@ -613,9 +613,16 @@
       let spd = this.baseSpeed * (this.adren > 0 ? 1.5 : 1) * (sprint ? 1.5 : 1);
       this.moving = !!(mv.x || mv.y);
       if (sprint) { this.stamina = Math.max(0, this.stamina - dt * 30); } else { this.stamina = Math.min(this.maxStamina, this.stamina + dt * 16); }
+      // cap knockback so movement can always overcome it, then decay & settle fast
+      const kbMag = Math.hypot(this.kbx, this.kby);
+      if (kbMag > 300) { const s = 300 / kbMag; this.kbx *= s; this.kby *= s; }
       let nx = this.x + (mv.x * spd + this.kbx) * dt;
       let ny = this.y + (mv.y * spd + this.kby) * dt;
-      this.kbx *= 0.8; this.kby *= 0.8;
+      this.kbx *= 0.78; this.kby *= 0.78;
+      if (Math.abs(this.kbx) < 1) this.kbx = 0;
+      if (Math.abs(this.kby) < 1) this.kby = 0;
+      if (!isFinite(nx)) nx = this.x;
+      if (!isFinite(ny)) ny = this.y;
       // prop collision
       nx = T.clamp(nx, this.r, G.arena.w - this.r); ny = T.clamp(ny, this.r, G.arena.h - this.r);
       if (!G.blocked(nx, this.y, this.r)) this.x = nx;
