@@ -39,6 +39,8 @@ window.TAC = window.TAC || {};
     rare:      { name: 'RARE',      color: '#3f8fe0', mult: 1.35 },
     epic:      { name: 'EPIC',      color: '#a35fe0', mult: 1.6 },
     legendary: { name: 'LEGENDARY', color: '#ef9a2e', mult: 1.9 },
+    mythical:  { name: 'MYTHICAL',  color: '#ffd24a', mult: 3.0 },
+    heavenly:  { name: 'HEAVENLY',  color: '#fff7d8', mult: 4.0 },
   };
 
   // simple seedable rng for deterministic-ish shop refresh (optional use)

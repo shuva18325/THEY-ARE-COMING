@@ -22,11 +22,12 @@
       this.crit = opt.crit || false;
       this.aoe = opt.aoe || w.aoe || 0;
       this.kb = (w.kb || 50);
+      this.chain = opt.chain || 0;
       this.dead = false;
       this.hitSet = new Set();
       this.trail = [];
-      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40', rocket: '#e8632a' })[this.type];
-      this.r = (this.type === 'grenade' || this.type === 'rocket') ? 2.6 : (this.type === 'rail' ? 1.6 : 1.2);
+      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40', rocket: '#e8632a', lightning: '#bfeaff', fireball: '#ff8a2a', goldlight: '#ffe08a' })[this.type];
+      this.r = (this.type === 'grenade' || this.type === 'rocket' || this.type === 'fireball') ? 2.8 : ((this.type === 'rail' || this.type === 'lightning' || this.type === 'goldlight') ? 1.6 : 1.2);
     }
     update(dt, G) {
       const px = this.x, py = this.y;
@@ -40,7 +41,8 @@
         G.particles.fire(this.x, this.y, 1);
         if (this.traveled > this.range) { this.dead = true; }
       }
-      if (this.type === 'rocket') { G.particles.smoke(this.x, this.y, 1, 'rgba(80,75,68,0.5)'); if (T.chance(0.6)) G.particles.fire(this.x, this.y, 1); }
+      if (this.type === 'rocket' || this.type === 'fireball') { G.particles.fire(this.x, this.y, this.type === 'fireball' ? 2 : 1); if (this.type === 'rocket') G.particles.smoke(this.x, this.y, 1, 'rgba(80,75,68,0.5)'); }
+      if ((this.type === 'lightning' || this.type === 'goldlight') && T.chance(0.5)) G.particles.spark(this.x, this.y, T.rand(0, T.TAU), 1, this.color);
       if (this.traveled > this.range) { this.dead = true; if (this.aoe) this.explode(G); return; }
       // arena bounds / props
       if (this.x < 0 || this.y < 0 || this.x > G.arena.w || this.y > G.arena.h) { this.dead = true; if (this.aoe) this.explode(G); return; }
@@ -73,6 +75,11 @@
       const ang = Math.atan2(this.vy, this.vx);
       const res = z.takeDamage(this.dmg, ang, G, { ap: this.ap, fire: this.fire, crit: this.crit, kb: this.kb });
       this.hitSet.add(z.id);
+      if (this.chain > 0) {
+        let near = null, nd = 120 * 120;
+        for (const o of G.zombies) { if (o.dead || this.hitSet.has(o.id)) continue; const d = T.dist2(this.x, this.y, o.x, o.y); if (d < nd) { nd = d; near = o; } }
+        if (near) { this.chain--; this.hitSet.add(near.id); G.addArc(this.x, this.y, near.x, near.y, this.color); near.takeDamage(this.dmg * 0.75, T.angle(this.x, this.y, near.x, near.y), G, { ap: true }); G.particles.spark(near.x, near.y, 0, 5, this.color); }
+      }
       if (this.aoe) { this.dead = true; this.explode(G); return; }
       if (res.deflected) { this.dead = true; return; }
       if (this.pierce > 0) { this.pierce--; this.dmg *= 0.85; }
@@ -90,13 +97,14 @@
           z.takeDamage(this.dmg * (1 - d / this.aoe * 0.5), ang, G, { ap: true, kb: 200 });
         }
       }
-      if ((this.type === 'grenade' || this.type === 'rocket') && this.fire) G.addHazard(this.x, this.y, this.aoe * 0.8, 4, 'fire');
+      if ((this.type === 'grenade' || this.type === 'rocket' || this.type === 'fireball') && this.fire) G.addHazard(this.x, this.y, this.aoe * 0.85, 5, 'fire');
     }
     draw(ctx) {
       // trail
       if (this.trail.length >= 4 && this.type !== 'flame') {
-        ctx.strokeStyle = this.type === 'rail' ? 'rgba(159,232,255,0.6)' : 'rgba(255,210,100,0.35)';
-        ctx.lineWidth = this.type === 'rail' ? 2 : 1;
+        const bright = this.type === 'rail' || this.type === 'lightning' || this.type === 'goldlight';
+        ctx.strokeStyle = this.type === 'goldlight' ? 'rgba(255,224,138,0.6)' : (bright ? 'rgba(159,232,255,0.6)' : 'rgba(255,210,100,0.35)');
+        ctx.lineWidth = bright ? 2 : 1;
         ctx.beginPath(); ctx.moveTo(this.trail[0], this.trail[1]);
         for (let i = 2; i < this.trail.length; i += 2) ctx.lineTo(this.trail[i], this.trail[i + 1]);
         ctx.stroke();
@@ -108,6 +116,9 @@
       else if (this.type === 'rocket') { ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-4, -1.5, 7, 3); ctx.fillStyle = '#b51d1d'; ctx.fillRect(2, -1.5, 2, 3); ctx.fillStyle = '#2a3a1a'; ctx.fillRect(-4, -2.5, 2, 1); ctx.fillRect(-4, 1.5, 2, 1); ctx.fillStyle = '#ffd24a'; ctx.fillRect(-6, -1, 2, 2); }
       else if (this.type === 'bolt') { ctx.fillStyle = '#caa'; ctx.fillRect(-3, -0.5, 6, 1); ctx.fillStyle = '#fff'; ctx.fillRect(2, -0.5, 2, 1); }
       else if (this.type === 'rail') { ctx.fillStyle = '#9fe8ff'; ctx.fillRect(-4, -0.8, 9, 1.6); ctx.fillStyle = '#fff'; ctx.fillRect(0, -0.6, 6, 1.2); }
+      else if (this.type === 'lightning') { ctx.fillStyle = '#fff'; ctx.fillRect(-5, -0.8, 12, 1.6); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(-5, -1.7, 12, 0.9); ctx.fillRect(-5, 0.8, 12, 0.9); ctx.fillStyle = '#fff'; ctx.fillRect(3, -1.6, 5, 3.2); }
+      else if (this.type === 'goldlight') { ctx.fillStyle = '#fff'; ctx.fillRect(-5, -0.8, 12, 1.6); ctx.fillStyle = '#ffe08a'; ctx.fillRect(-5, -1.7, 12, 0.9); ctx.fillRect(-5, 0.8, 12, 0.9); }
+      else if (this.type === 'fireball') { ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, T.TAU); ctx.fill(); ctx.fillStyle = '#ff8a2a'; ctx.beginPath(); ctx.arc(0, 0, 2.1, 0, T.TAU); ctx.fill(); ctx.fillStyle = '#c83a1a'; ctx.fillRect(-1, -1, 2, 2); }
       else { ctx.fillStyle = '#fff7c0'; ctx.fillRect(-2, -0.6, 4, 1.2); ctx.fillStyle = this.color; ctx.fillRect(-2, -0.6, 2, 1.2); }
       ctx.restore();
     }
@@ -135,6 +146,8 @@
     }
     takeDamage(amount, fromAng, G, opt) {
       opt = opt || {};
+      if (opt.gold) this._goldDeath = true;
+      if (G.settings && G.settings.oneShot) amount = 999999;
       let dmg = amount, deflected = false;
       if (this.def.armored && !opt.ap && !opt.crit) {
         if (T.chance(0.55)) { // plate deflection
@@ -163,7 +176,14 @@
     die(G, fromAng) {
       this.dead = true;
       G.onZombieKilled(this);
-      G.particles.gib(this.x, this.y, this.def.big ? 12 : 6);
+      if (this._goldDeath) {
+        for (let i = 0; i < 12; i++) G.particles.spark(this.x, this.y, T.rand(0, T.TAU), 1, T.pick(['#ffe08a', '#f2c14e', '#caa84a']));
+        G.particles.addDecal(this.x, this.y, T.rand(6, 10), 'rgba(200,160,40,0.6)');
+        G.particles.light(this.x, this.y, 32, 'rgba(255,210,90,0.8)', 0.3);
+        G.particles.floatText(this.x, this.y - this.def.r - 4, 'GOLD!', '#ffd24a', true);
+      } else {
+        G.particles.gib(this.x, this.y, this.def.big ? 12 : 6);
+      }
       G.particles.floatText(this.x, this.y - this.def.r, '+$' + this.def.cash, '#f2c14e');
       if (this.def.burst) { // bloater toxic cloud
         G.addHazard(this.x, this.y, 46, 4, 'toxic');
@@ -432,6 +452,7 @@
       this.armor = stats.armor; this.baseSpeed = stats.speed;
       this.maxStamina = stats.stamina; this.stamina = stats.stamina;
       this.reloadMul = stats.reloadMul; this.crit = stats.crit; this.meleeMult = stats.meleeMult || 1;
+      this.maxShield = stats.shield || 0; this.shield = this.maxShield;
       this.stats = stats; this.gear = gear; this.ammo = ammo; this.eq = eq;
       this.current = eq.primary ? 'primary' : 'secondary';
       this.heldGun = this.curWeaponId();
@@ -459,13 +480,16 @@
       if (this.reloading || this.fireCd > 0) return;
       const id = this.curWeaponId(); const w = T.WEAPONS[id]; if (!w) return;
       const am = this.ammo[id];
-      if (am.mag <= 0) { if (!this._dry) { T.Audio.dry(); this._dry = true; } this.reload(G); return; }
+      const inf = G.settings && G.settings.infAmmo;
+      if (!inf && am.mag <= 0) { if (!this._dry) { T.Audio.dry(); this._dry = true; } this.reload(G); return; }
       this._dry = false;
       // spin-up
       if (w.spinup) { this.spinup = Math.min(1, this.spinup + 0.1); if (this.spinup < 0.5) { this.fireCd = 0.05; return; } }
       const rof = 60 / w.rpm / (this.adren > 0 ? 1.5 : 1);
       this.fireCd = rof;
-      am.mag--;
+      if (!inf) am.mag--;
+      // MYTHICAL King Orb — golden lightning storm (no projectile)
+      if (w.goldLightning) { this.fireGoldLightning(G, w); this.recoilKick = 2; return; }
       const mx = this.x + Math.cos(this.angle) * (10 + (T.Sprites.gun(id).len)) - Math.sin(this.angle) * 0;
       const my = this.y + Math.sin(this.angle) * (10 + (T.Sprites.gun(id).len));
       const spreadRad = (w._spread * Math.PI / 180);
@@ -475,7 +499,7 @@
         const sp = T.rand(-spreadRad, spreadRad) / 2 + T.rand(-spreadRad, spreadRad) / 2;
         const crit = T.chance(this.crit + (w.crit ? 0.0 : 0)) || (w.crit && T.chance(0.5));
         const dmg = w.dmg * (crit ? (w.crit || 2) : 1) * w._dmgMul;
-        G.bullets.push(new Bullet(mx, my, this.angle, w, { spread: sp, dmg, pierce: (w.pierce || 0) + (w._pierce || 0), range: w.range * w._rangeMul, spd: w.spd * w._spdMul, ap, fire, crit, owner: 'player' }));
+        G.bullets.push(new Bullet(mx, my, this.angle, w, { spread: sp, dmg, pierce: (w.pierce || 0) + (w._pierce || 0), range: w.range * w._rangeMul, spd: w.spd * w._spdMul, ap, fire, crit, chain: w.chain || 0, owner: 'player' }));
       }
       G.particles.muzzle(mx, my, this.angle, w.fam === 'Shotgun' || w.fam === 'LMG' ? 1.4 : 1);
       this.recoilKick = Math.min(4, w.recoil * 0.6);
@@ -485,26 +509,42 @@
       // shell casing
       if (w.fam !== 'Special' || w.bullet === 'round') G.particles.spark(mx - Math.cos(this.angle) * 4, my - Math.sin(this.angle) * 4, this.angle + Math.PI / 2 * (T.chance(.5) ? 1 : -1), 1, '#c8a030');
     }
+    fireGoldLightning(G, w) {
+      const mx = this.x + Math.cos(this.angle) * 12, my = this.y + Math.sin(this.angle) * 12;
+      G.particles.muzzle(mx, my, this.angle, 1.3);
+      G.particles.light(this.x, this.y, 50, 'rgba(255,220,120,0.7)', 0.18);
+      const range = w.range, n = w.goldLightning || 6;
+      const cands = G.zombies.filter(z => !z.dead && T.dist2(this.x, this.y, z.x, z.y) < range * range)
+        .sort((a, b) => T.dist2(this.x, this.y, a.x, a.y) - T.dist2(this.x, this.y, b.x, b.y)).slice(0, n);
+      if (!cands.length) { G.addArc(mx, my, mx + Math.cos(this.angle) * range, my + Math.sin(this.angle) * range, '#ffe08a'); }
+      for (const z of cands) {
+        G.addArc(this.x, this.y - 4, z.x, z.y, '#ffe08a');
+        z.takeDamage(w.dmg * w._dmgMul, T.angle(this.x, this.y, z.x, z.y), G, { ap: true, crit: T.chance(0.35) });
+        G.particles.spark(z.x, z.y, 0, 8, '#ffe08a'); G.particles.light(z.x, z.y, 28, 'rgba(255,220,120,0.7)', 0.16);
+      }
+      G.particles.shakeBy(5);
+      if (!w._silent) T.Audio.explosion();
+    }
     doMelee(G) {
       if (this.meleeCd > 0) return;
       const id = this.eq.melee; if (!id) return; const w = T.WEAPONS[id];
       this.meleeCd = w.swing; this.meleeAnim = 1; T.Audio.melee();
+      if (w.lunge) { this.kbx += Math.cos(this.angle) * 460; this.kby += Math.sin(this.angle) * 460; G.particles.shakeBy(3); G.particles.light(this.x, this.y, 36, 'rgba(255,210,90,0.5)', 0.18); }
       let hit = false;
+      const rng = w.range * (w.lunge ? 1.1 : 1);
       for (const z of G.zombies) {
         if (z.dead) continue;
         const d = T.dist(this.x, this.y, z.x, z.y);
-        if (d < w.range + z.def.r) {
+        if (d < rng + z.def.r) {
           const a = T.angle(this.x, this.y, z.x, z.y);
           if (Math.abs(T.angleDiff(this.angle, a)) < w.arc) {
-            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2) });
-            if (w.bleed) z.burnT = Math.max(z.burnT, 0); // (bleed reuses dot lightly)
+            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2), gold: w.goldKill });
             hit = true;
           }
         }
       }
-      // slash effect
-      G.meleeSlash = { x: this.x, y: this.y, a: this.angle, arc: w.arc, range: w.range, life: 0.12, max: 0.12 };
-      if (hit) G.particles.shakeBy(2);
+      G.meleeSlash = { x: this.x, y: this.y, a: this.angle, arc: w.arc, range: rng, life: 0.12, max: 0.12, gold: w.goldKill };
+      if (hit) G.particles.shakeBy(w.lunge ? 4 : 2);
     }
     useConsumable(G) {
       const id = this.belt[this.beltIndex]; if (!id) return;
@@ -530,13 +570,19 @@
     }
     takeDamage(amount, G) {
       if (this.invuln > 0) return;
+      if (G.settings && G.settings.god) { this.invuln = 0.15; return; }
       const dr = T.clamp(this.armor / (this.armor + 60), 0, 0.8); // armor -> % reduction
-      let dmg = amount * (1 - dr);
-      dmg = Math.max(1, Math.round(dmg));
-      this.hp -= dmg; this.invuln = 0.25;
+      let dmg = Math.max(1, Math.round(amount * (1 - dr)));
+      this.invuln = 0.25;
+      // golden shield (King Crown / Aztec) — the second bar, absorbs first
+      if (this.maxShield > 0 && this.shield > 0) {
+        const ab = Math.min(this.shield, dmg); this.shield -= ab; dmg -= ab;
+        G.particles.light(this.x, this.y, 26, 'rgba(255,210,90,0.6)', 0.2);
+        if (dmg <= 0) { G.particles.floatText(this.x, this.y - 12, 'BLOCKED', '#ffd24a'); G.particles.shakeBy(2); return; }
+      }
+      this.hp -= dmg;
       G.particles.floatText(this.x, this.y - 12, '-' + dmg, '#ff5a5a');
-      G.particles.shakeBy(4); T.Audio.hurt();
-      G.damageFlash = 0.25;
+      G.particles.shakeBy(4); T.Audio.hurt(); G.damageFlash = 0.25;
       if (this.hp <= 0) { this.hp = 0; G.gameOver(); }
     }
     update(dt, G) {
@@ -653,5 +699,58 @@
     }
   }
   T.Pet = Pet;
+
+  // ---------------- HUMAN COMPANION / PARTNER ----------------
+  class Companion {
+    constructor(x, y, id) {
+      this.def = T.COMPANIONS[id]; this.compId = id;
+      this.x = x; this.y = y; this.angle = 0;
+      this.animPhase = T.rand(0, 6); this.cd = T.rand(1.2, 2.4); this.fireCd = 0; this.walk = 0; this.moving = false;
+    }
+    update(dt, G) {
+      const d = this.def, p = G.player;
+      this.animPhase += dt * 6;
+      const followD = 34 + (d.kind === 'soldier' ? 12 : 0);
+      const dToP = T.dist(this.x, this.y, p.x, p.y);
+      let best = null, bd = d.range * d.range;
+      for (const z of G.zombies) { if (z.dead) continue; const dd = T.dist2(this.x, this.y, z.x, z.y); if (dd < bd) { bd = dd; best = z; } }
+      this.moving = false;
+      if (dToP > followD) { const a = T.angle(this.x, this.y, p.x, p.y); const sp = Math.min(d.spd, (dToP - followD) * 5); this.x += Math.cos(a) * sp * dt; this.y += Math.sin(a) * sp * dt; this.walk += dt * 11; this.moving = true; }
+      this.x = T.clamp(this.x, 8, G.arena.w - 8); this.y = T.clamp(this.y, 8, G.arena.h - 8);
+      this.angle = best ? T.angle(this.x, this.y, best.x, best.y) : p.angle;
+
+      if (d.kind === 'medic') {
+        this.cd -= dt;
+        const needHp = p.hp < p.maxHp, needSh = p.maxShield > 0 && p.shield < p.maxShield;
+        if (this.cd <= 0 && (needHp || needSh)) {
+          this.cd = d.healCd;
+          if (needHp) p.hp = Math.min(p.maxHp, p.hp + d.heal); else p.shield = Math.min(p.maxShield, p.shield + d.heal);
+          G.addArc(this.x, this.y - 4, p.x, p.y - 4, '#7fe0a0');
+          G.particles.floatText(p.x, p.y - 16, '+' + d.heal, '#5fbf52'); G.particles.light(p.x, p.y, 24, 'rgba(95,200,120,0.5)', 0.2);
+        }
+      } else if (d.kind === 'engineer') {
+        this.cd -= dt;
+        if (this.cd <= 0 && G.turrets.length < 4) {
+          this.cd = d.buildCd;
+          const tid = (p.trapLoadout && p.trapLoadout.find(t => T.TRAPS[t] && T.TRAPS[t].effect === 'turret')) || d.turret;
+          const tx = p.x + T.rand(-34, 34), ty = p.y + T.rand(-34, 34);
+          G.turrets.push(new Turret(tx, ty, tid)); G.particles.floatText(tx, ty - 8, 'TURRET UP', '#caa84a');
+        }
+      } else if (d.kind === 'soldier' && best) {
+        this.fireCd -= dt;
+        if (this.fireCd <= 0) {
+          this.fireCd = d.atkCd;
+          G.bullets.push(new Bullet(this.x, this.y - 4, this.angle + T.rand(-0.05, 0.05), { spd: 900, dmg: d.dmg, bullet: 'round', range: d.range + 60 }, { owner: 'player', dmg: d.dmg }));
+          G.particles.muzzle(this.x + Math.cos(this.angle) * 8, this.y - 4 + Math.sin(this.angle) * 8, this.angle, 0.7);
+          T.Audio.shot('Rifle');
+        }
+      }
+    }
+    draw(ctx) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(this.x, this.y + 6, 6, 3, 0, 0, T.TAU); ctx.fill();
+      T.Sprites.drawCompanion(ctx, this);
+    }
+  }
+  T.Companion = Companion;
 
 })(window.TAC);

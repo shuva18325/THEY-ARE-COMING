@@ -4,8 +4,8 @@
   const I = {
     keys: {},
     mouse: { x: 480, y: 300, sx: 0, sy: 0 }, // sx/sy = screen-space within canvas
-    firing: false,        // right mouse held (shoot)
-    stabbing: false,      // left mouse held (melee)
+    firing: false,        // left mouse held (shoot)
+    stabbing: false,      // right mouse held (melee)
     pressed: {},          // edge-triggered this frame
     canvas: null,
   };
@@ -28,15 +28,15 @@
       I.mouse.sx = (e.clientX - r.left) * (canvas.width / r.width);
       I.mouse.sy = (e.clientY - r.top) * (canvas.height / r.height);
     });
-    // RIGHT-CLICK = fire weapon.  LEFT-CLICK = melee / stab.
+    // LEFT-CLICK = fire weapon.  RIGHT-CLICK = melee / stab.
     canvas.addEventListener('mousedown', e => {
       T.Audio.unlock();
-      if (e.button === 2) { I.firing = true; e.preventDefault(); }
-      else if (e.button === 0) { I.stabbing = true; e.preventDefault(); }
+      if (e.button === 0) { I.firing = true; e.preventDefault(); }
+      else if (e.button === 2) { I.stabbing = true; e.preventDefault(); }
     });
     window.addEventListener('mouseup', e => {
-      if (e.button === 2) I.firing = false;
-      else if (e.button === 0) I.stabbing = false;
+      if (e.button === 0) I.firing = false;
+      else if (e.button === 2) I.stabbing = false;
     });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('blur', () => { I.keys = {}; I.firing = false; I.stabbing = false; });

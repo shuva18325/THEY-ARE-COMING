@@ -17,14 +17,19 @@
       <p class="subtitle">A gritty top-down zombie survival shooter</p>
       <div class="menu-buttons">
         <button id="btnStart" class="btn big">▶ NEW GAME</button>
+        <button id="btnSettings" class="btn">⚙ SETTINGS</button>
         <button id="btnHowto" class="btn">HOW TO PLAY</button>
+      </div>
+      <div id="settings" class="howto hidden">
+        <h3>NEW GAME — SETTINGS &amp; CHEATS</h3>
+        <div id="settingsList" class="settings-list"></div>
       </div>
       <div id="howto" class="howto hidden">
         <h3>CONTROLS</h3>
         <ul>
           <li><b>WASD</b> — Move (all directions)</li>
           <li><b>Mouse</b> — Aim (player faces cursor)</li>
-          <li><b>LEFT-CLICK</b> — Melee / stab &nbsp; <b>RIGHT-CLICK</b> — Fire weapon</li>
+          <li><b>LEFT-CLICK</b> — Fire weapon &nbsp; <b>RIGHT-CLICK</b> — Melee / stab</li>
           <li><b>R</b> — Reload &nbsp; <b>Shift</b> — Sprint &nbsp; <b>Q</b> — Swap weapon</li>
           <li><b>E</b> — Place trap &nbsp; <b>F</b> — Melee &nbsp; <b>Space</b> — Use consumable</li>
           <li><b>1-4</b> — Quick-select &nbsp; <span class="dim">Buy a Pet (K-9, bear, tiger, drone) in the shop — it fights for you!</span></li>
@@ -46,6 +51,7 @@
         <span class="cash">$ <b id="hubCash">0</b></span>
         <span class="salvage">◆ <b id="hubSalvage">0</b></span>
       </div>
+      <button id="btnSquad" class="btn">💬 SQUAD</button>
       <button id="btnDeploy" class="btn deploy">DEPLOY ▶</button>
     </div>
 
@@ -84,6 +90,9 @@
     </div>
     </div><!-- /hub-panels -->
 
+    <!-- CHEATS (shown only when cheats are enabled) -->
+    <div id="cheatBar" class="cheat-bar hidden"></div>
+
     <!-- CRAZY DAVE — travelling arms dealer -->
     <div id="daveBar" class="dave-bar">
       <div class="dave-portrait-wrap">
@@ -107,6 +116,7 @@
     </div>
     <div class="hud-bottom">
       <div class="hud-vitals">
+        <div class="bar shield" id="shieldBar" style="display:none"><div id="shieldFill" class="fill"></div><span id="shieldText">SHIELD</span></div>
         <div class="bar hp"><div id="hpFill" class="fill"></div><span id="hpText">100/100</span></div>
         <div class="bar armor"><div id="armorFill" class="fill"></div><span id="armorText">0</span></div>
         <div class="bar stamina"><div id="staFill" class="fill"></div><span>STAMINA</span></div>
@@ -129,6 +139,26 @@
       <h2 class="wc-title">WAVE CLEARED</h2>
       <div id="wcStats" class="wc-stats"></div>
       <button id="btnContinue" class="btn big">CONTINUE → SUIT UP</button>
+      <button id="btnSettle" class="btn" style="display:none">⚑ Settle Down (End Run)</button>
+    </div>
+  </div>
+
+  <!-- ===================== SQUAD / TALK / ROMANCE ===================== -->
+  <div id="squad" class="screen overlay">
+    <div class="oc squad-oc">
+      <h2 class="wc-title" style="color:var(--warn)">YOUR SQUAD</h2>
+      <div id="squadList" class="squad-list"></div>
+      <button id="btnSquadClose" class="btn">← BACK</button>
+    </div>
+  </div>
+
+  <!-- ===================== ENDINGS ===================== -->
+  <div id="ending" class="screen overlay">
+    <div class="oc">
+      <canvas id="endArt" width="130" height="120"></canvas>
+      <h2 id="endTitle" class="wc-title">THE END</h2>
+      <div id="endText" class="end-text"></div>
+      <button id="btnEndRestart" class="btn big">↺ NEW RUN</button>
     </div>
   </div>
 

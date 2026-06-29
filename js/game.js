@@ -18,8 +18,9 @@
       this.state = null; this.mode = 'menu';
       this.wave = 1; this.score = 0; this.kills = 0;
       this.zombies = []; this.bullets = []; this.traps = []; this.turrets = [];
-      this.throwables = []; this.hazards = []; this.props = []; this.pets = [];
+      this.throwables = []; this.hazards = []; this.props = []; this.pets = []; this.fxArcs = [];
       this.damageFlash = 0; this.meleeSlash = null;
+      this.settings = { cheats: false, god: false, infAmmo: false, oneShot: false, startCash: 900 };
       this.ui = new T.UI(this);
       T.Input.init(this.canvas);
       this.last = performance.now();
@@ -30,23 +31,46 @@
     freshState() { return JSON.parse(JSON.stringify(T.START)); }
 
     toHub() {
-      if (!this.state) { this.state = this.freshState(); this.wave = 1; this.score = 0; this.kills = 0; }
-      this.state.owned.attachUnlocked = this.state.owned.attachUnlocked || [];
+      if (!this.state) { this.state = this.freshState(); this.state.cash = this.settings.startCash || 900; this.wave = 1; this.score = 0; this.kills = 0; }
+      const o = this.state.owned;
+      o.attachUnlocked = o.attachUnlocked || []; o.pets = o.pets || []; o.companions = o.companions || [];
+      this.state.equipped.companions = this.state.equipped.companions || [];
+      this.state.romance = this.state.romance || {};
       this.mode = 'hub';
       this.ui.showScreen('hub');
       this.ui.renderHub();
       this.ui.daveGreet();
     }
-    restart() { this.state = this.freshState(); this.wave = 1; this.score = 0; this.kills = 0; this.ui.daveSeen = false; this.toHub(); }
+    restart() { this.state = this.freshState(); this.state.cash = this.settings.startCash || 900; this.wave = 1; this.score = 0; this.kills = 0; this.ui.daveSeen = false; this.toHub(); }
+
+    // ---------- cheats ----------
+    cheat(action) {
+      const o = this.state.owned, s = this.state;
+      if (action === 'money') s.cash += 10000;
+      else if (action === 'salvage') s.salvage += 50;
+      else if (action === 'wave') this.wave += 1;
+      else if (action === 'unlock') {
+        Object.keys(T.WEAPONS).forEach(id => { if (!o.weapons.includes(id)) o.weapons.push(id); });
+        Object.keys(T.ARMOR).forEach(id => { if (!o.armor.includes(id)) o.armor.push(id); });
+        Object.keys(T.PETS).forEach(id => { if (!o.pets.includes(id)) o.pets.push(id); });
+        if (T.COMPANIONS) Object.keys(T.COMPANIONS).forEach(id => { if (!o.companions.includes(id)) o.companions.push(id); });
+        Object.keys(T.ATTACHMENTS).forEach(id => { o.attachUnlocked = o.attachUnlocked || []; if (!o.attachUnlocked.includes(id)) o.attachUnlocked.push(id); });
+        Object.keys(T.TRAPS).forEach(id => { o.traps[id] = (o.traps[id] || 0) + 5; });
+        Object.keys(T.ITEMS).forEach(id => { o.items[id] = (o.items[id] || 0) + 10; });
+      }
+      T.Audio.coin(); this.ui.renderHub();
+    }
+    addArc(x1, y1, x2, y2, color) { this.fxArcs.push({ x1, y1, x2, y2, color: color || '#bfeaff', life: 0.14, max: 0.14 }); }
 
     // ---------- derived stats ----------
     computeStats() {
       const eq = this.state.equipped;
-      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1, meleeMult: 1 };
+      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1, meleeMult: 1, shield: 0 };
       ['helmet', 'chest', 'legs', 'boots', 'gloves', 'backpack'].forEach(slot => {
         const id = eq[slot]; if (!id) return; const a = T.ARMOR[id]; if (!a) return;
         if (a.armor) s.armor += a.armor;
         if (a.melee) s.meleeMult += a.melee;
+        if (a.shield) s.shield = (s.shield || 0) + a.shield;
         if (a.hp) s.maxHp += a.hp;
         if (a.spd) s.speed *= (1 + a.spd);
         if (a.reload) s.reloadMul *= (1 - a.reload);
@@ -63,8 +87,14 @@
     gearColors() {
       const eq = this.state.equipped;
       const col = (slot, def) => { const id = eq[slot]; return id && T.ARMOR[id] ? T.ARMOR[id].color : def; };
+      const h = eq.helmet, c = eq.chest;
+      let theme = null;
+      if (h === 'helm_aegis') theme = 'heaven';
+      else if (h === 'helm_king') theme = 'king';
+      else if (h === 'helm_samurai' || c === 'chest_samurai') theme = 'samurai';
+      else if (h === 'helm_aztec' || c === 'chest_aztec') theme = 'aztec';
       return {
-        skin: '#c79c74',
+        skin: '#c79c74', theme,
         helmet: col('helmet', '#3a2a20'),
         chest: col('chest', '#3a4a3a'),
         legs: col('legs', '#2a3a55'),
@@ -112,8 +142,9 @@
       this.player = new T.Player(this.arena.w / 2, this.arena.h / 2);
       this.player.initFromLoadout(stats, gear, ammo, eq);
       this.zombies.length = 0; this.bullets.length = 0; this.traps.length = 0;
-      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0; this.pets.length = 0;
+      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0; this.pets.length = 0; this.fxArcs.length = 0;
       if (eq.pet && T.PETS[eq.pet]) this.pets.push(new T.Pet(this.player.x + 20, this.player.y + 12, eq.pet));
+      (eq.companions || []).forEach((cid, i) => { if (cid && T.COMPANIONS && T.COMPANIONS[cid]) this.pets.push(new T.Companion(this.player.x - 18 - i * 14, this.player.y + 10, cid)); });
       this.particles.clear();
       this.buildEnvironment();
       this.startWave();
@@ -276,6 +307,8 @@
       // fire props emit
       for (const pr of this.props) if (pr.kind === 'fire' && T.chance(0.6)) this.particles.fire(pr.x, pr.y - 2, 1);
       this.particles.update(dt);
+      for (let i = this.fxArcs.length - 1; i >= 0; i--) { this.fxArcs[i].life -= dt; if (this.fxArcs[i].life <= 0) this.fxArcs.splice(i, 1); }
+      const cwm = this.player.curWeapon(); if (cwm && cwm.rarity === 'mythical' && T.chance(0.3)) this.particles.spark(this.player.x + T.rand(-6, 6), this.player.y + T.rand(-9, 3), -Math.PI / 2, 1, '#ffe08a');
 
       if (this.meleeSlash) { this.meleeSlash.life -= dt; if (this.meleeSlash.life <= 0) this.meleeSlash = null; }
       if (this.damageFlash > 0) this.damageFlash -= dt;
@@ -364,6 +397,7 @@
       // throwables + bullets
       for (const t of this.throwables) t.draw(x);
       for (const b of this.bullets) b.draw(x);
+      this.drawArcs(x);
       // particles & floaters
       this.particles.drawParts(x);
       this.particles.drawFloaters(x);
@@ -377,6 +411,7 @@
       // additive lights: player aura + particle lights + fires
       x.globalCompositeOperation = 'lighter';
       this.lightBlob(x, this.player.x, this.player.y, 155, 'rgba(130,130,95,' + (L.dark > 0 ? 0.55 : 0.2) + ')');
+      { const cwl = this.player.curWeapon(); if (cwl && cwl.rarity === 'mythical') this.lightBlob(x, this.player.x, this.player.y, 64, 'rgba(255,210,90,0.4)'); }
       // muzzle/flash light when firing handled by particle lights
       for (const pr of this.props) if (pr.kind === 'fire') this.lightBlob(x, pr.x, pr.y, 50, 'rgba(230,120,40,0.6)');
       this.particles.drawLights(x);
@@ -427,9 +462,21 @@
     drawSlash(x, s) {
       const a = T.clamp(s.life / s.max, 0, 1);
       x.save(); x.translate(s.x, s.y); x.rotate(s.a);
-      x.strokeStyle = 'rgba(255,255,255,' + a + ')'; x.lineWidth = 2;
+      x.strokeStyle = (s.gold ? 'rgba(255,220,120,' : 'rgba(255,255,255,') + a + ')'; x.lineWidth = s.gold ? 3 : 2;
       x.beginPath(); x.arc(0, 0, s.range, -s.arc, s.arc); x.stroke();
       x.restore();
+    }
+    drawArcs(x) {
+      for (const arc of this.fxArcs) {
+        const al = T.clamp(arc.life / arc.max, 0, 1);
+        const segs = 6, dx = (arc.x2 - arc.x1) / segs, dy = (arc.y2 - arc.y1) / segs;
+        x.strokeStyle = arc.color; x.globalAlpha = al; x.lineWidth = 2;
+        x.beginPath(); x.moveTo(arc.x1, arc.y1);
+        for (let i = 1; i < segs; i++) x.lineTo(arc.x1 + dx * i + (Math.random() - 0.5) * 9, arc.y1 + dy * i + (Math.random() - 0.5) * 9);
+        x.lineTo(arc.x2, arc.y2); x.stroke();
+        x.globalAlpha = al * 0.4; x.lineWidth = 5; x.stroke();
+        x.globalAlpha = 1;
+      }
     }
 
     drawProp(x, pr) {

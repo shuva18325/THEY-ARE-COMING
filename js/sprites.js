@@ -26,7 +26,8 @@
     const fam = w.fam;
     const lenMap = { Pistol:9, SMG:13, Rifle:18, Shotgun:15, Sniper:24, LMG:19, Special:16, Melee:14 };
     let L = lenMap[fam] || 14;
-    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20 }[id] || 14;
+    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18 }[id] || 14;
+    if (fam === 'Mythical') L = { myth_tengeshima:24, myth_aztec_staff:20, myth_king_orb:18 }[id] || 20;
     const H = 9, axis = 4;
     const { c, x } = cv(L + 2, H + 2);
     const ox = 1, oy = 1;
@@ -113,6 +114,20 @@
         grip(3, WOOD);
         P(L - 1, axis, 1, 1, '#ccc');              // bolt tip
       }
+    } else if (fam === 'Mythical') {
+      if (id === 'myth_tengeshima') {              // Lugh's lightning spear
+        P(1, axis, L - 6, 1, '#caa84a'); P(1, axis - 1, 6, 1, '#ffe08a');
+        P(L - 6, axis - 3, 4, 7, '#bfeaff'); P(L - 3, axis - 1, 3, 1, '#fff'); P(L - 3, axis, 3, 1, '#7fdfff');
+        P(L - 7, axis - 4, 1, 9, '#9fe8ff'); grip(3);
+      } else if (id === 'myth_aztec_staff') {      // sun-king fire staff
+        P(1, axis, L - 6, 1, '#7a5a2a'); P(1, axis - 1, 5, 1, '#a07a3a');
+        P(L - 6, axis - 3, 5, 7, '#caa84a'); P(L - 6, axis - 3, 5, 1, '#ffe08a');
+        P(L - 5, axis - 1, 3, 3, '#c83a1a'); P(L - 4, axis, 1, 1, '#f2c14e'); grip(3, WOOD);
+      } else {                                     // king orb scepter
+        P(2, axis, L - 7, 1, '#caa84a'); P(2, axis - 1, 5, 1, '#ffe08a');
+        P(L - 7, axis - 3, 6, 6, '#f2c14e'); P(L - 6, axis - 3, 4, 2, '#ffe9a8');
+        P(L - 4, axis - 6, 1, 4, '#ffe08a'); P(L - 5, axis - 5, 3, 1, '#ffe08a'); grip(3);
+      }
     } else if (fam === 'Melee') {
       if (id === 'melee_knife') {
         P(2, axis, 3, 1, '#2a2018'); P(5, axis - 1, L - 5, 2, '#c8ccd0'); P(5, axis - 1, L - 5, 1, '#eef'); P(L - 1, axis - 1, 1, 1, '#fff');
@@ -130,6 +145,14 @@
       } else if (id === 'melee_chainsaw') {
         P(2, axis - 2, 6, 5, '#c84a1a'); P(2, axis - 2, 6, 1, '#e87a3a'); P(3, axis + 2, 2, 2, '#1a1a1a');
         P(8, axis - 1, L - 8, 2, '#9aa0a8'); for (let i = 8; i < L; i += 2) P(i, axis - 2, 1, 1, '#555'); P(L - 1, axis - 1, 1, 2, '#777');
+      } else if (id === 'melee_mjolnir') {     // thunder hammer
+        P(2, axis, L - 6, 1, '#5a4a32'); P(2, axis - 1, 5, 1, '#7a5a33');
+        P(L - 7, axis - 4, 6, 9, '#9aa0a8'); P(L - 7, axis - 4, 6, 1, '#cfd6e0'); P(L - 7, axis + 4, 6, 1, '#5a5f66');
+        P(L - 6, axis - 2, 4, 1, '#5fc6e8'); P(L - 5, axis, 2, 2, '#9fe8ff');
+      } else if (id === 'melee_king_staff') {  // royal golden scepter
+        P(2, axis, L - 6, 1, '#caa84a'); P(2, axis - 1, L - 8, 1, '#ffe08a'); P(2, axis + 1, L - 8, 1, '#a8862a');
+        P(L - 6, axis - 4, 1, 9, '#ffe08a'); P(L - 8, axis - 1, 5, 1, '#ffe08a');
+        P(L - 6, axis - 5, 1, 1, '#fff'); P(L - 6, axis + 4, 1, 1, '#c83a1a');
       } else { // machete
         P(2, axis, 4, 1, '#3a2a1a'); P(6, axis - 1, L - 6, 2, '#c8ccd0'); P(6, axis - 1, L - 6, 1, '#e8ecf0');
       }
@@ -220,9 +243,15 @@
     ctx.fillStyle = '#241a10'; ctx.fillRect(3.5, -3, 2, 6);        // goggle band
     ctx.fillStyle = '#ff9a2a'; ctx.fillRect(4.5, -2.6, 1.6, 2); ctx.fillRect(4.5, 0.6, 1.6, 2);
     ctx.fillStyle = '#ffe28a'; ctx.fillRect(4.7, -2.2, 1, 1); ctx.fillRect(4.7, 1, 1, 1);
+    // themed flourishes (samurai crest / aztec feathers / king crown / heavenly halo)
+    if (g.theme === 'samurai') { ctx.fillStyle = '#f2c14e'; ctx.fillRect(2, -6, 1, 3); ctx.fillRect(4, -6, 1, 3); }
+    else if (g.theme === 'aztec') { ctx.fillStyle = '#1f8a5a'; for (let i = -2; i <= 2; i++) ctx.fillRect(-3, i, 2, 1); ctx.fillStyle = '#f2c14e'; ctx.fillRect(-4, 0, 1, 1); }
+    else if (g.theme === 'king') { ctx.fillStyle = '#f2c14e'; ctx.fillRect(-1, -6, 6, 1); ctx.fillRect(0, -7, 1, 1); ctx.fillRect(2, -7, 1, 1); ctx.fillRect(4, -7, 1, 1); }
+    else if (g.theme === 'heaven') { ctx.fillStyle = '#fff7d8'; ctx.fillRect(-1, -8, 6, 1); }
     // subtle goggle glow
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = 'rgba(255,150,40,0.12)'; ctx.beginPath(); ctx.arc(6, 0, 6, 0, T.TAU); ctx.fill();
+    if (g.theme === 'king' || g.theme === 'heaven') { ctx.fillStyle = 'rgba(255,210,90,0.18)'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, T.TAU); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
   };
@@ -339,6 +368,10 @@
     ctx.fillStyle = base; roundRect(ctx, -r * 1.4, -r * 0.75, r * 2.8, r * 1.5, r * 0.5);
     ctx.fillStyle = lt; roundRect(ctx, -r * 1.2, -r * 0.65, r * 2.2, r * 0.45, r * 0.3);
     ctx.fillStyle = dk; roundRect(ctx, -r * 1.3, r * 0.1, r * 2.5, r * 0.55, r * 0.3);
+    // curled tail at the back (shiba-like)
+    ctx.fillStyle = OL; ctx.beginPath(); ctx.arc(-r * 1.5, -r * 0.55, r * 0.58, 0, T.TAU); ctx.fill();
+    ctx.fillStyle = lt; ctx.beginPath(); ctx.arc(-r * 1.5, -r * 0.55, r * 0.5, 0, T.TAU); ctx.fill();
+    ctx.fillStyle = base; ctx.beginPath(); ctx.arc(-r * 1.42, -r * 0.48, r * 0.32, 0, T.TAU); ctx.fill();
     if (d.leap) { ctx.fillStyle = '#2a1a10'; for (let i = -1; i < 3; i++) ctx.fillRect(-r * 0.6 + i * r * 0.55, -r * 0.7, 1.5, r * 1.4); }
     if (d.big) { ctx.fillStyle = '#3a3f48'; ctx.fillRect(r * 0.2, -r * 0.8, r * 0.5, r * 1.6); ctx.fillStyle = '#caa84a'; ctx.fillRect(r * 0.35, -r * 0.2, 2, 2); }
     else { ctx.fillStyle = '#b51d1d'; ctx.fillRect(r * 0.5, -r * 0.7, 2, r * 1.4); } // collar
@@ -352,6 +385,7 @@
     if (d.big) { roundDot(ctx, hx - r * 0.2, -r * 0.6, 2.4, base); roundDot(ctx, hx - r * 0.2, r * 0.6, 2.4, base); }
     else { ctx.fillStyle = dk; ctx.fillRect(hx - r * 0.3, -r * 0.75, 2.5, 3); ctx.fillRect(hx - r * 0.3, r * 0.5, 2.5, 3); }
     ctx.fillStyle = '#2a1a14'; ctx.fillRect(hx + r * 0.45, -r * 0.25, r * 0.45, r * 0.5);  // snout
+    ctx.fillStyle = '#141414'; ctx.fillRect(hx + r * 0.82, -1, 2, 2);                       // nose
     ctx.fillStyle = '#caa84a'; ctx.fillRect(hx + r * 0.12, -r * 0.3, 1.8, 1.8); ctx.fillRect(hx + r * 0.12, r * 0.14, 1.8, 1.8); // amber eyes
     ctx.fillStyle = '#e8e0d0'; ctx.fillRect(hx + r * 0.7, 0, r * 0.3, 1);  // teeth
     ctx.restore();
@@ -382,6 +416,42 @@
       x.fillStyle = '#caa84a'; x.fillRect(-5 * sc, 0, 2.5, 2.5); x.fillRect(3 * sc, 0, 2.5, 2.5);
       x.fillStyle = '#2a1a14'; x.fillRect(-2 * sc, 6 * sc, 4 * sc, 4 * sc);
     }
+  }
+
+  // ---------------- HUMAN COMPANIONS (top-down standing) ----------------
+  S.drawCompanion = function (ctx, c) {
+    const d = c.def, OL = '#0c0e0a', col = d.color;
+    const bob = Math.sin(c.walk || 0) * (c.moving ? 1 : 0);
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.translate(c.x, c.y + bob);
+    ctx.fillStyle = shade(col, -0.4); ctx.fillRect(-3, 3, 2, 4); ctx.fillRect(1, 3, 2, 4); // legs
+    ctx.fillStyle = OL; ctx.fillRect(-5, -4, 10, 9);
+    ctx.fillStyle = col; ctx.fillRect(-4, -3, 8, 7);
+    ctx.fillStyle = shade(col, 0.18); ctx.fillRect(-4, -3, 8, 2);
+    ctx.fillStyle = OL; ctx.beginPath(); ctx.arc(0, -6, 3.4, 0, T.TAU); ctx.fill();
+    ctx.fillStyle = '#c79c74'; ctx.beginPath(); ctx.arc(0, -6, 2.8, 0, T.TAU); ctx.fill();
+    if (d.kind === 'medic') {
+      ctx.fillStyle = '#d8b24a'; ctx.fillRect(-3, -8, 6, 2);
+      ctx.fillStyle = '#fff'; ctx.fillRect(-2, -9, 4, 2);
+      ctx.fillStyle = '#c33'; ctx.fillRect(-0.5, -9, 1, 2); ctx.fillRect(-1.5, -8.5, 3, 1);
+      ctx.fillStyle = '#c33'; ctx.fillRect(-1, -1, 2, 1); ctx.fillRect(-0.5, -2, 1, 3);
+    } else if (d.kind === 'engineer') {
+      ctx.fillStyle = '#f2c14e'; ctx.fillRect(-3, -9, 6, 2); ctx.fillRect(-4, -7, 8, 1);
+    } else {
+      ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-3, -9, 6, 2);
+      ctx.save(); ctx.rotate(c.angle); ctx.fillStyle = '#2b2d31'; ctx.fillRect(2, -1, 9, 2); ctx.fillStyle = '#16171a'; ctx.fillRect(10, -1, 2, 2); ctx.restore();
+    }
+    ctx.restore();
+  };
+  function drawCompanionIcon(x, id, size) {
+    const c = T.COMPANIONS[id], sc = size / 40, col = c.color;
+    x.fillStyle = col; roundRect(x, -10 * sc, 4 * sc, 20 * sc, 12 * sc, 3);
+    x.fillStyle = shade(col, 0.18); x.fillRect(-10 * sc, 4 * sc, 20 * sc, 2);
+    x.fillStyle = '#c79c74'; x.beginPath(); x.arc(0, -4 * sc, 8 * sc, 0, T.TAU); x.fill();
+    if (c.kind === 'medic') { x.fillStyle = '#d8b24a'; x.fillRect(-8 * sc, -10 * sc, 16 * sc, 4 * sc); x.fillStyle = '#fff'; x.fillRect(-6 * sc, -12 * sc, 12 * sc, 3 * sc); x.fillStyle = '#c33'; x.fillRect(-1 * sc, -12 * sc, 2 * sc, 3 * sc); x.fillRect(-3 * sc, -11 * sc, 6 * sc, 1 * sc); x.fillStyle = '#c33'; x.fillRect(-1 * sc, 7 * sc, 2 * sc, 5 * sc); x.fillRect(-3 * sc, 9 * sc, 6 * sc, 2 * sc); }
+    else if (c.kind === 'engineer') { x.fillStyle = '#f2c14e'; x.fillRect(-9 * sc, -11 * sc, 18 * sc, 4 * sc); x.fillRect(-7 * sc, -13 * sc, 14 * sc, 2 * sc); }
+    else { x.fillStyle = '#3a4a2a'; x.fillRect(-9 * sc, -12 * sc, 18 * sc, 5 * sc); }
+    x.fillStyle = '#1a1a1a'; x.fillRect(-4 * sc, -4 * sc, 2 * sc, 2 * sc); x.fillRect(2 * sc, -4 * sc, 2 * sc, 2 * sc);
   }
 
   // ---------------- FRONT-FACING PORTRAITS ----------------
@@ -448,9 +518,28 @@
     P(-7, -29, 14, 6, OL); P(-6, -28, 12, 5, helm); P(-6, -28, 12, 2, shade(helm, 0.2));
     P(-4, -27, 3, 2, shade(helm, -0.32)); P(1, -26, 3, 2, shade(helm, -0.32)); P(-1, -28, 2, 2, shade(helm, -0.32));
     P(-7, -24, 2, 4, shade(helm, -0.15)); P(5, -24, 2, 4, shade(helm, -0.15)); // ear flaps
+    // ---- themed regalia ----
+    const th = gear.theme;
+    if (th === 'samurai') {
+      P(-2, -33, 4, 2, '#f2c14e'); P(-5, -32, 3, 2, '#ffe08a'); P(2, -32, 3, 2, '#ffe08a'); P(-1, -36, 2, 4, '#caa84a');
+      P(-13, -7, 4, 6, '#7a1f1f'); P(9, -7, 4, 6, '#7a1f1f'); P(-13, -7, 4, 1, '#caa84a'); P(9, -7, 4, 1, '#caa84a');
+    } else if (th === 'aztec') {
+      for (let i = -4; i <= 4; i++) { const fx = i * 3; P(fx - 1, -37, 2, 7, i % 2 ? '#1f8a5a' : '#2fae6a'); P(fx - 1, -38, 2, 2, '#f2c14e'); }
+      P(-7, -30, 14, 2, '#caa84a');
+    } else if (th === 'king') {
+      P(-8, -34, 16, 4, '#f2c14e'); P(-8, -34, 16, 1, '#ffe9a8');
+      P(-8, -38, 2, 5, '#f2c14e'); P(-1, -39, 2, 6, '#f2c14e'); P(6, -38, 2, 5, '#f2c14e');
+      P(-7, -32, 2, 2, '#c33'); P(0, -32, 2, 2, '#3f8fe0'); P(5, -32, 2, 2, '#c33');
+      P(-1, -42, 2, 3, '#ffe08a'); P(-2, -41, 4, 1, '#ffe08a');
+      P(-9, -2, 18, 3, '#7a1414'); P(-9, -2, 18, 1, '#b51d1d');
+    } else if (th === 'heaven') {
+      P(-7, -38, 14, 2, '#fff7d8'); P(-8, -37, 2, 2, '#fff7d8'); P(7, -37, 2, 2, '#fff7d8'); P(-5, -39, 10, 1, '#ffffff');
+      P(-14, -7, 4, 9, '#f0f0e0'); P(10, -7, 4, 9, '#f0f0e0');
+    }
     // additive goggle glow
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = 'rgba(255,150,40,0.18)'; ctx.fillRect(-8, -24, 16, 6);
+    if (th === 'king' || th === 'heaven') { ctx.fillStyle = 'rgba(255,210,90,0.2)'; ctx.fillRect(-12, -42, 24, 32); }
     ctx.restore();
   };
 
@@ -549,6 +638,8 @@
       x.fillStyle = '#3a3d40'; x.fillRect(-8, -3, 16, 6); x.fillStyle = '#5fc6e8'; x.fillRect(-8, -3, 16, 1);
     } else if (kind === 'pet') {
       drawPetIcon(x, id, size);
+    } else if (kind === 'companion') {
+      drawCompanionIcon(x, id, size);
     }
     x.restore();
     ICON_CACHE[key] = c;

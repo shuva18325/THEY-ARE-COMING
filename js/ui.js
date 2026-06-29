@@ -13,6 +13,14 @@
       this.daveSeen = false;
       this.daveTimer = null;
       this.daveEye = 0;
+      this.TALK = {
+        medic: ["Hold still — you've got bites everywhere.", "I trained for ERs, not the end of the world. But I'm not going anywhere.", "Stay close and I'll keep you breathing.", "We make a good team out there, you know."],
+        engineer: ["Give me a toolbox and I'll fortify anything.", "Those turrets won't build themselves. Oh wait — they will.", "Cover me while I work, yeah?"],
+        soldier: ["Point me at the horde.", "Ammo's holding. For now.", "I've seen worse. Not much worse. But worse."],
+      };
+      this.FLIRT = {
+        medic: ["...You're sweet, under all that blood. Maybe when this is over.", "Careful — a girl could get ideas.", "If we make it out of this... I'd like that. I'd like that a lot. ♥", "Stop making me blush in the middle of an apocalypse!"],
+      };
       this.bind();
     }
 
@@ -25,22 +33,78 @@
       // overlays handled separately
     }
     showScreen(name) {
-      $('#menu').classList.remove('active');
-      $('#hub').classList.remove('active');
-      $('#hud').classList.remove('active');
-      $('#wavecomplete').classList.remove('active');
-      $('#gameover').classList.remove('active');
-      const map = { menu: '#menu', hub: '#hub', hud: '#hud', wavecomplete: '#wavecomplete', gameover: '#gameover' };
+      ['#menu', '#hub', '#hud', '#wavecomplete', '#gameover', '#ending', '#squad'].forEach(s => $(s).classList.remove('active'));
+      const map = { menu: '#menu', hub: '#hub', hud: '#hud', wavecomplete: '#wavecomplete', gameover: '#gameover', ending: '#ending' };
       $(map[name]).classList.add('active');
+    }
+
+    // ---------------- SQUAD / TALK / ROMANCE ----------------
+    openSquad() { this.renderSquadList(); $('#squad').classList.add('active'); }
+    squadGreet(cid) {
+      const c = T.COMPANIONS[cid];
+      if (c.romance) { const r = this.G.state.romance[cid] || 0; return r >= 80 ? '“…I think I love you, you idiot. ♥”' : (r >= 40 ? '“Good to see you made it back in one piece.”' : '“Oh — hey. Didn\'t expect company.”'); }
+      return '“Ready when you are.”';
+    }
+    renderSquadList() {
+      const wrap = $('#squadList'); wrap.innerHTML = '';
+      const active = (this.G.state.equipped.companions || []);
+      if (!active.length) { wrap.innerHTML = '<p class="dim" style="max-width:480px;margin:0 auto 12px">No partners deployed. Buy a Medic, Engineer, or Soldier in the shop (the <b>Companions</b> tab) and equip them in your loadout — then come back to talk.</p>'; return; }
+      active.forEach(cid => {
+        const c = T.COMPANIONS[cid];
+        const row = el('div', 'squad-row');
+        const pic = T.Sprites.icon(cid, 56); pic.className = 'squad-portrait'; row.appendChild(pic);
+        const info = el('div', 'squad-info');
+        let hearts = '';
+        if (c.romance) { const r = this.G.state.romance[cid] || 0; const f = Math.round(r / 20); hearts = `<div class="hearts">${'♥'.repeat(f)}${'♡'.repeat(5 - f)}</div>`; }
+        info.innerHTML = `<div class="squad-name">${c.name}</div><div class="ctype">${c.role}</div>${hearts}<div class="squad-line" id="line_${cid}">${this.squadGreet(cid)}</div>`;
+        const btns = el('div', 'squad-btns');
+        const t = el('button', 'btn', 'Talk'); t.onclick = () => this.squadTalk(cid, 'talk'); btns.appendChild(t);
+        if (c.romance) { const f = el('button', 'btn', '♥ Flirt'); f.onclick = () => this.squadTalk(cid, 'flirt'); btns.appendChild(f); }
+        info.appendChild(btns); row.appendChild(info); wrap.appendChild(row);
+      });
+    }
+    squadTalk(cid, kind) {
+      const c = T.COMPANIONS[cid];
+      let line;
+      if (kind === 'flirt' && c.romance) {
+        this.G.state.romance[cid] = Math.min(100, (this.G.state.romance[cid] || 0) + 20);
+        line = T.pick(this.FLIRT[c.kind] || ['…']);
+      } else line = T.pick(this.TALK[c.kind] || ['…']);
+      this.renderSquadList();
+      const ln = $('#line_' + cid); if (ln) ln.textContent = '“' + line + '”';
+      T.Audio.tone(kind === 'flirt' ? 560 : 420, 0.06, 'sine', 0.08);
+    }
+    showEnding() {
+      const G = this.G, eq = G.state.equipped;
+      const medic = (eq.companions || []).includes('comp_medic');
+      const rom = G.state.romance['comp_medic'] || 0, w = G.wave - 1;
+      let title, text;
+      if (medic && rom >= 80) { title = '♥ HAPPILY EVER AFTER'; text = `You and the medic lay down your guns and walk into a quieter dawn. In the safe settlements beyond the wall you marry, build a little house, and — years later, in a world finally free of the dead — raise children who'll know the horde only as a bedtime story. You cleared Wave ${w}. You won at life.`; }
+      else if (medic && rom >= 40) { title = 'A QUIET PEACE'; text = `You and the medic find a fortified town and stay. It isn't quite romance — not yet — but it's warm, and it's safe, and after Wave ${w}, that's everything. Maybe, in time, a family. ♥`; }
+      else if (medic || rom > 0) { title = 'THE LONG ROAD'; text = `You hang up your weapons and drift between settlements. The medic waves from the gate as you go. Some bonds don't survive the apocalypse. You reached Wave ${w} — and lived to wonder what might have been.`; }
+      else { title = 'THE LONE WANDERER'; text = `No partners, no ties — just you and the long grey road. You walk out of the quarantine zone alone, a legend nobody will believe. Wave ${w} cleared. The end… for now.`; }
+      $('#endTitle').textContent = title; $('#endText').textContent = text;
+      const c = $('#endArt'), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
+      x.save(); x.translate(46, 92); x.scale(2.2, 2.2); T.Sprites.drawPlayerPortrait(x, G.gearColors(), eq.primary || eq.secondary); x.restore();
+      if (medic && rom >= 40) {
+        x.save(); x.translate(92, 96); x.scale(2.4, 2.4); T.Sprites.drawCompanion(x, { def: T.COMPANIONS['comp_medic'], x: 0, y: 0, walk: 0, moving: false, angle: 0 }); x.restore();
+        x.fillStyle = '#ff5a8a'; x.font = 'bold 18px monospace'; x.fillText('♥', 60, 36);
+      }
+      this.showScreen('ending');
     }
 
     bind() {
       const G = this.G;
       $('#btnStart').onclick = () => { T.Audio.unlock(); T.Audio.buy(); G.toHub(); };
-      $('#btnHowto').onclick = () => $('#howto').classList.toggle('hidden');
+      $('#btnHowto').onclick = () => { $('#howto').classList.toggle('hidden'); $('#settings').classList.add('hidden'); };
+      $('#btnSettings').onclick = () => { $('#settings').classList.toggle('hidden'); $('#howto').classList.add('hidden'); this.renderSettings(); };
       $('#btnDeploy').onclick = () => { T.Audio.buy(); this.daveComment('deploy'); this.daveAnimStop(); setTimeout(() => G.deploy(), 650); };
       $('#btnContinue').onclick = () => { T.Audio.buy(); G.toHub(); };
       $('#btnRestart').onclick = () => { T.Audio.buy(); G.restart(); };
+      $('#btnSquad').onclick = () => { T.Audio.tone(440, 0.05, 'sine', 0.08); this.openSquad(); };
+      $('#btnSquadClose').onclick = () => { $('#squad').classList.remove('active'); };
+      $('#btnSettle').onclick = () => { T.Audio.buy(); this.showEnding(); };
+      $('#btnEndRestart').onclick = () => { T.Audio.buy(); G.restart(); };
 
       T.$$('.tab').forEach(t => t.onclick = () => {
         T.$$('.tab').forEach(x => x.classList.remove('active'));
@@ -61,6 +125,44 @@
       $('#hubSalvage').textContent = G.state.salvage;
       this.renderLoadout();
       this.renderShop();
+      this.renderCheats();
+    }
+
+    // ---------------- SETTINGS & CHEATS ----------------
+    renderSettings() {
+      const s = this.G.settings, wrap = $('#settingsList'); if (!wrap) return; wrap.innerHTML = '';
+      // starting cash cycle
+      const opts = [900, 10000, 100000, 999999];
+      const cashRow = el('div', 'set-row');
+      cashRow.innerHTML = `<div class="lbl">Starting Cash<small>applied when you start a New Game</small></div>`;
+      const cb = el('button', 'set-btn on', '$' + T.fmt(s.startCash));
+      cb.onclick = () => { s.startCash = opts[(opts.indexOf(s.startCash) + 1) % opts.length]; cb.textContent = '$' + T.fmt(s.startCash); T.Audio.tone(500, 0.05, 'square', 0.08); };
+      cashRow.appendChild(cb); wrap.appendChild(cashRow);
+      const toggle = (key, label, sub) => {
+        const row = el('div', 'set-row cheaty');
+        row.innerHTML = `<div class="lbl">${label}<small>${sub || ''}</small></div>`;
+        const b = el('button', 'set-btn ' + (s[key] ? 'on' : 'off'), s[key] ? 'ON' : 'OFF');
+        b.onclick = () => { s[key] = !s[key]; T.Audio.tone(s[key] ? 660 : 300, 0.05, 'square', 0.08); this.renderSettings(); };
+        row.appendChild(b); wrap.appendChild(row);
+      };
+      toggle('cheats', '😈 Enable Cheats', 'shows a cheat bar in the hub');
+      toggle('god', 'God Mode', 'you take no damage');
+      toggle('infAmmo', 'Infinite Ammo', 'never run dry, never reload');
+      toggle('oneShot', 'One-Shot Kills', 'every hit kills instantly');
+    }
+
+    renderCheats() {
+      const bar = $('#cheatBar'); if (!bar) return;
+      if (!this.G.settings.cheats) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+      bar.classList.remove('hidden'); bar.innerHTML = '';
+      bar.appendChild(el('span', 'ctitle', '😈 CHEATS'));
+      const btn = (label, fn) => { const b = el('button', 'cheat-btn', label); b.onclick = fn; bar.appendChild(b); };
+      btn('+ $10,000', () => this.G.cheat('money'));
+      btn('+ 50 ◆ Salvage', () => this.G.cheat('salvage'));
+      btn('Unlock EVERYTHING', () => this.G.cheat('unlock'));
+      btn('Skip +1 Wave', () => this.G.cheat('wave'));
+      const tg = (key, label) => { const b = el('button', 'cheat-btn toggle ' + (this.G.settings[key] ? 'on' : ''), label + (this.G.settings[key] ? ' ✓' : '')); b.onclick = () => { this.G.settings[key] = !this.G.settings[key]; this.renderCheats(); }; bar.appendChild(b); };
+      tg('god', 'God'); tg('infAmmo', 'Inf Ammo'); tg('oneShot', '1-Shot');
     }
 
     // ---------------- CRAZY DAVE (shop merchant) ----------------
@@ -138,6 +240,11 @@
         T.Sprites.drawPet(x, { def: T.PETS[eq.pet], animPhase: 1, bob: 0 });
         x.restore();
       }
+      (eq.companions || []).slice(0, 2).forEach((cid, i) => {
+        x.save(); x.translate(30 + i * 30, 236); x.scale(2.1, 2.1);
+        T.Sprites.drawCompanion(x, { def: T.COMPANIONS[cid], x: 0, y: 0, walk: 0, moving: false, angle: 0 });
+        x.restore();
+      });
     }
 
     renderEquipSlots() {
@@ -158,6 +265,17 @@
         card.onclick = () => { this.activeSlot = key; this.invFilter = this.filterForSlot(key); this.renderLoadout(); T.Audio.tone(360, 0.03, 'square', 0.05); };
         wrap.appendChild(card);
       });
+      // human partner slots (up to 2)
+      eq.companions = eq.companions || [];
+      for (let i = 0; i < 2; i++) {
+        const cid = eq.companions[i];
+        const cdef = cid ? T.COMPANIONS[cid] : null;
+        const card = el('div', 'slot' + (cid ? '' : ' empty'));
+        card.innerHTML = `<div class="slot-label">Partner ${i + 1}</div><div class="slot-item">${cdef ? cdef.name : '— empty —'}</div>`;
+        if (cid) card.appendChild(T.Sprites.icon(cid, 22));
+        card.onclick = () => { if (cid) eq.companions.splice(i, 1); else this.invFilter = 'companion'; this.renderLoadout(); T.Audio.tone(360, 0.03, 'square', 0.05); };
+        wrap.appendChild(card);
+      }
       // trap + consumable load slots
       const stats = this.G.computeStats();
       const trapRow = el('div', 'slot-label', `TRAP SLOTS (${eq.trapSlot.length}/${stats.trapSlots}) — click traps in inventory`);
@@ -202,7 +320,7 @@
     renderInventory() {
       const wrap = $('#inventory'); wrap.innerHTML = '';
       const fwrap = $('#invFilters'); fwrap.innerHTML = '';
-      const filters = [['all', 'All'], ['weapon', 'Weapons'], ['armor', 'Armor'], ['pet', 'Pets'], ['trap', 'Traps'], ['item', 'Consumables'], ['attach', 'Attach']];
+      const filters = [['all', 'All'], ['weapon', 'Weapons'], ['armor', 'Armor'], ['pet', 'Pets'], ['companion', 'Partners'], ['trap', 'Traps'], ['item', 'Consumables'], ['attach', 'Attach']];
       filters.forEach(([k, lbl]) => {
         const b = el('button', 'fbtn' + (this.invFilter === k ? ' active' : ''), lbl);
         b.onclick = () => { this.invFilter = k; this.renderInventory(); };
@@ -215,6 +333,7 @@
       if (this.invFilter === 'all' || this.invFilter === 'trap') for (const id in owned.traps) if (owned.traps[id] > 0) list.push({ id, kind: 'trap', qty: owned.traps[id] });
       if (this.invFilter === 'all' || this.invFilter === 'item') for (const id in owned.items) if (owned.items[id] > 0) list.push({ id, kind: 'item', qty: owned.items[id] });
       if (this.invFilter === 'all' || this.invFilter === 'pet') (owned.pets || []).forEach(id => list.push({ id, kind: 'pet' }));
+      if (this.invFilter === 'all' || this.invFilter === 'companion') (owned.companions || []).forEach(id => list.push({ id, kind: 'companion' }));
       if (this.invFilter === 'attach') (owned.attachUnlocked || []).forEach(id => list.push({ id, kind: 'attach' }));
 
       list.forEach(({ id, kind, qty }) => {
@@ -270,7 +389,12 @@
         if (i >= 0) eq.belt.splice(i, 1);
         else { if (eq.belt.length >= stats.beltSlots) { T.Audio.dry(); return; } eq.belt.push(id); }
       } else if (kind === 'pet') {
-        eq.pet = (eq.pet === id) ? null : id; // toggle companion
+        eq.pet = (eq.pet === id) ? null : id; // toggle animal
+      } else if (kind === 'companion') {
+        eq.companions = eq.companions || [];
+        const i = eq.companions.indexOf(id);
+        if (i >= 0) eq.companions.splice(i, 1);
+        else { if (eq.companions.length >= 2) { T.Audio.dry(); return; } eq.companions.push(id); }
       } else return;
       T.Audio.tone(500, 0.04, 'square', 0.07);
       this.renderLoadout();
@@ -297,7 +421,7 @@
     renderShop() {
       $('#hubCash').textContent = T.fmt(this.G.state.cash);
       $('#hubSalvage').textContent = this.G.state.salvage;
-      const cats = ['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special', 'Pets', 'Traps', 'Utility', 'Armor', 'Attachments'];
+      const cats = ['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special', '★ Mythical', 'Pets', 'Companions', 'Traps', 'Utility', 'Armor', 'Attachments'];
       const cw = $('#shopCats'); cw.innerHTML = '';
       cats.forEach(c => {
         const b = el('button', this.shopCat === c ? 'active' : '', c);
@@ -332,14 +456,15 @@
       if (k === 'trap') return 'trap';
       if (k === 'item') return T.ITEMS[id].kind;
       if (k === 'attach') return 'attachment';
-      if (k === 'pet') return T.PETS[id].kind === 'ranged' ? 'drone' : 'companion';
+      if (k === 'pet') return T.PETS[id].kind === 'ranged' ? 'drone' : 'pet';
+      if (k === 'companion') return T.COMPANIONS[id].role;
       return '';
     }
 
     lockWave(id) {
       if (T.kindOf(id) === 'attach') return 1;
       const d = T.lookup(id);
-      return { common: 1, uncommon: 1, rare: 3, epic: 6, legendary: 10 }[d.rarity || 'common'] || 1;
+      return { common: 1, uncommon: 1, rare: 3, epic: 6, legendary: 10, mythical: 1, heavenly: 1 }[d.rarity || 'common'] || 1;
     }
     isLocked(id) { return this.G.wave < this.lockWave(id); }
 
@@ -347,7 +472,9 @@
       let ids = [];
       if (['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special'].includes(cat)) {
         ids = Object.keys(T.WEAPONS).filter(id => T.WEAPONS[id].fam === cat);
-      } else if (cat === 'Pets') ids = Object.keys(T.PETS);
+      } else if (cat === '★ Mythical') ids = [...Object.keys(T.WEAPONS), ...Object.keys(T.ARMOR)].filter(id => (T.lookup(id).rarity === 'mythical'));
+      else if (cat === 'Pets') ids = Object.keys(T.PETS);
+      else if (cat === 'Companions') ids = T.COMPANIONS ? Object.keys(T.COMPANIONS) : [];
       else if (cat === 'Traps') ids = Object.keys(T.TRAPS);
       else if (cat === 'Utility') ids = Object.keys(T.ITEMS);
       else if (cat === 'Armor') ids = Object.keys(T.ARMOR);
@@ -362,6 +489,7 @@
       if (k === 'armor') return o.armor.includes(id);
       if (k === 'attach') return (o.attachUnlocked || []).includes(id);
       if (k === 'pet') return (o.pets || []).includes(id);
+      if (k === 'companion') return (o.companions || []).includes(id);
       return false; // traps/items are stackable
     }
 
@@ -413,7 +541,9 @@
       if (kind === 'armor') {
         const a = def, out = [];
         if (a.armor) out.push(['Armor', '+' + a.armor]);
+        if (a.shield) out.push(['Shield', '+' + a.shield + ' (2nd bar)']);
         if (a.hp) out.push(['Health', '+' + a.hp]);
+        if (a.melee) out.push(['Melee Dmg', '+' + Math.round(a.melee * 100) + '%']);
         if (a.spd) out.push(['Speed', (a.spd > 0 ? '+' : '') + Math.round(a.spd * 100) + '%']);
         if (a.reload) out.push(['Reload', '+' + Math.round(a.reload * 100) + '%']);
         if (a.crit) out.push(['Crit', '+' + Math.round(a.crit * 100) + '%']);
@@ -447,6 +577,14 @@
         const p = def;
         return [['Type', p.kind === 'ranged' ? 'Ranged drone' : 'Melee companion'], ['Damage', p.dmg], ['Attack Rate', p.atkCd + 's'], ['Speed', p.spd], ['Aggro Range', p.range]];
       }
+      if (kind === 'companion') {
+        const c = def, out = [['Role', c.role]];
+        if (c.dmg) out.push(['Damage', c.dmg]);
+        if (c.heal) out.push(['Heals', '+' + c.heal + ' / ' + c.healCd + 's']);
+        if (c.turret) out.push(['Builds', 'Auto-Turrets']);
+        out.push(['Speed', c.spd]);
+        return out;
+      }
       return [];
     }
 
@@ -462,6 +600,7 @@
       else if (kind === 'item') { o.items[id] = (o.items[id] || 0) + 1; }
       else if (kind === 'attach') { o.attachUnlocked = o.attachUnlocked || []; if (!o.attachUnlocked.includes(id)) o.attachUnlocked.push(id); }
       else if (kind === 'pet') { o.pets = o.pets || []; if (!o.pets.includes(id)) o.pets.push(id); }
+      else if (kind === 'companion') { o.companions = o.companions || []; if (!o.companions.includes(id)) o.companions.push(id); }
       T.Audio.buy();
       this.daveComment('buy');
       this.renderShop();
@@ -482,6 +621,9 @@
       $('#hpText').textContent = Math.ceil(p.hp) + '/' + p.maxHp;
       $('#armorFill').style.width = T.clamp(p.armor / 80 * 100, 0, 100) + '%';
       $('#armorText').textContent = 'ARMOR ' + p.armor;
+      const sb = $('#shieldBar');
+      if (p.maxShield > 0) { sb.style.display = ''; $('#shieldFill').style.width = T.clamp(p.shield / p.maxShield * 100, 0, 100) + '%'; $('#shieldText').textContent = '🛡 ' + Math.ceil(p.shield) + '/' + p.maxShield; }
+      else sb.style.display = 'none';
       $('#staFill').style.width = T.clamp(p.stamina / p.maxStamina * 100, 0, 100) + '%';
       // weapon
       const wid = p.curWeaponId(); const w = T.WEAPONS[wid];
@@ -530,6 +672,7 @@
     waveComplete(data) {
       const w = $('#wcStats'); w.innerHTML = '';
       data.forEach(([k, v]) => { const r = el('div', 'row'); r.innerHTML = `<span>${k}</span><b>${v}</b>`; w.appendChild(r); });
+      $('#btnSettle').style.display = (this.G.wave > 5) ? '' : 'none';
       this.showScreen('wavecomplete');
     }
     gameOver(data) {

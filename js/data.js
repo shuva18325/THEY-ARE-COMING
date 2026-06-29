@@ -42,6 +42,20 @@
     spec_gl:       { name:'Thumper',      fam:'Special', slot:'primary', rarity:'epic',      price:3500, dmg:130, rpm:60,   spd:520, spread:1,  mag:4,   reserve:24,  reload:2.8, bullet:'grenade', kb:160, recoil:8, range:600, auto:false, aoe:95, perks:['Explosive AoE'], desc:'40mm grenades. Clear packs in one thunk.' },
     spec_rail:     { name:'Tesla Lance',  fam:'Special', slot:'primary', rarity:'legendary', price:6000, dmg:265, rpm:40,   spd:2000, spread:0, mag:4,   reserve:24,  reload:3.0, bullet:'rail',    kb:140, recoil:8, range:1300, auto:false, pierce:99, perks:['Pierces everything','Chain arc'], desc:'Magnetic rail spike. A laser of death down the lane.' },
     spec_rpg:      { name:'Devastator',   fam:'Special', slot:'primary', rarity:'legendary', price:5500, dmg:240, rpm:48,   spd:480,  spread:1, mag:1,   reserve:14,  reload:2.7, bullet:'rocket',  kb:240, recoil:10, range:760, auto:false, aoe:120, fire:true, perks:['Huge explosion','Leaves fire','Knockback'], desc:'Shoulder-fired RPG. Delete entire packs in one screaming rocket.' },
+
+    // ===== more LEGENDARY =====
+    rifle_plasma: { name:'Plasma Rifle',  fam:'Rifle',   slot:'primary', rarity:'legendary', price:5000, dmg:72, rpm:600, spd:1150, spread:1, mag:40, reserve:240, reload:2.0, bullet:'rail', kb:70, recoil:3, range:820, auto:true, pierce:3, perks:['Superheated bolts','Pierces 3'], desc:'Experimental energy carbine. Bolts of plasma that punch through ranks.' },
+    sg_dragon:    { name:'Dragonsbreath', fam:'Shotgun', slot:'primary', rarity:'legendary', price:4800, dmg:16, pellets:9, rpm:150, spd:680, spread:14, mag:12, reserve:72, reload:2.6, bullet:'slug', fire:true, kb:120, recoil:5, range:380, auto:true, perks:['Incendiary pellets','Sets the horde ablaze'], desc:'Auto shotgun loaded with dragonsbreath shells. Every blast is a wall of fire.' },
+    melee_mjolnir:{ name:'Mjölnir',       fam:'Melee',   slot:'melee',   rarity:'legendary', price:5200, dmg:270, range:72, swing:0.5, arc:1.6, kb:340, perks:['Thunder hammer','Earth-shaking knockback'], desc:'The thunder hammer. Each swing scatters the dead like leaves.' },
+
+    // ===== MYTHICAL (god-tier) =====
+    myth_tengeshima: { name:'Tengeshima',        fam:'Mythical', slot:'primary', rarity:'mythical', price:25000, dmg:420, rpm:260, spd:1700, spread:0, mag:12, reserve:300, reload:1.5, bullet:'lightning', kb:160, recoil:4, range:1300, auto:true, pierce:99, chain:4, perks:["Lugh's spear of lightning","Pierces everything","Chains to 4 more"], desc:'The radiant spear of Lugh. A bolt of white lightning that impales whole lines and leaps between the dead.' },
+    myth_aztec_staff:{ name:'Aztec Chief Staff', fam:'Mythical', slot:'primary', rarity:'mythical', price:22000, dmg:320, rpm:84,  spd:470,  spread:1, mag:6,  reserve:72,  reload:2.0, bullet:'fireball', kb:200, recoil:9, range:760, auto:false, aoe:160, fire:true, perks:['Hurls a MASSIVE fireball','Enormous burning AoE'], desc:'Carved obsidian-and-gold staff of the sun-king. Launches a colossal fireball that immolates the horde.' },
+    myth_king_orb:   { name:'King Orb',          fam:'Mythical', slot:'primary', rarity:'mythical', price:40000, dmg:240, rpm:140, spd:0,    spread:0, mag:24, reserve:300, reload:2.0, bullet:'goldlight', goldLightning:6, kb:120, recoil:5, range:1000, auto:true, perks:['Golden lightning storm','Strikes 6 zombies at once','Annihilates hordes'], desc:'The orb of the crown. Call down golden lightning that forks across the battlefield and erases hordes.' },
+    myth_king_staff: { name:'King Staff',        fam:'Melee',   slot:'melee',   rarity:'mythical', price:30000, dmg:520, range:96, swing:0.5, arc:1.9, kb:340, lunge:true, goldKill:true, perks:['Lunging royal strike','Turns the slain to GOLD'], desc:'The royal scepter. Lunge forward in a golden arc — every soul it fells is frozen in solid gold.' },
+
+    // ===== HEAVENLY (final, ultimate tier) =====
+    heaven_judgment: { name:'Wrath of Heaven', fam:'Mythical', slot:'primary', rarity:'heavenly', price:80000, dmg:620, rpm:120, spd:0, spread:0, mag:36, reserve:600, reload:1.8, bullet:'goldlight', goldLightning:12, kb:160, recoil:6, range:1400, auto:true, perks:['HEAVENLY — divine lightning','Smites 12 at once','Erases entire hordes'], desc:'The judgment of the heavens. Call down a storm of holy lightning that scours the battlefield clean.' },
   };
 
   // ---------- TRAPS & TURRETS (9) ----------
@@ -78,6 +92,9 @@
     helm_mil:    { name:'Military Helmet', slot:'helmet', rarity:'rare',      price:1100, armor:14, hp:10, color:'#3a4a2a', desc:'Kevlar combat helmet with night strap.' },
     helm_jug:    { name:'Juggernaut Helm', slot:'helmet', rarity:'legendary', price:3000, armor:28, hp:25, spd:-0.05, color:'#4a4a4a', desc:'Heavy welded faceplate. You are a tank.' },
     helm_samurai:{ name:'Samurai Kabuto',  slot:'helmet', rarity:'epic',      price:2800, armor:24, hp:15, melee:0.15, color:'#7a1f1f', desc:'Lacquered war helm with a golden crest. +15% melee.' },
+    helm_aztec:  { name:'Aztec Headdress',  slot:'helmet', rarity:'epic',      price:4200, armor:26, hp:20, melee:0.10, color:'#1f8a5a', desc:'Feathered war-crown of the sun. +10% melee.' },
+    helm_king:   { name:'King Crown',        slot:'helmet', rarity:'mythical',  price:35000, armor:60, hp:80, shield:250, color:'#f2c14e', desc:'The Holy Crown. Grants a massive +250 SHIELD — a golden second bar before your health.' },
+    helm_aegis:  { name:'Aegis Halo',        slot:'helmet', rarity:'heavenly',  price:70000, armor:90, hp:150, shield:500, color:'#fff7d8', desc:'HEAVENLY. A radiant halo granting +500 shield and near-divine protection.' },
     // CHEST
     chest_hoodie:  { name:'Hoodie',          slot:'chest', rarity:'common',    price:0,    armor:3,  color:'#3a4a3a', desc:'A comfy grey hoodie. Sentimental value only.' },
     chest_leather: { name:'Leather Jacket',  slot:'chest', rarity:'uncommon',  price:600,  armor:10, color:'#3a2a20', desc:'Thick biker leather. Resists bites.' },
@@ -85,6 +102,7 @@
     chest_plate:   { name:'Plate Carrier',   slot:'chest', rarity:'epic',      price:2600, armor:34, hp:25, spd:-0.03, color:'#3a3a30', desc:'Ceramic plates front and back. Serious protection.' },
     chest_jug:     { name:'Juggernaut Plate',slot:'chest', rarity:'legendary', price:4500, armor:50, hp:60, spd:-0.12, color:'#4a4a4a', desc:'Full siege armor. Slow, unstoppable, terrifying.' },
     chest_samurai: { name:'Samurai Dō',      slot:'chest', rarity:'epic',      price:3600, armor:40, hp:30, melee:0.20, spd:-0.04, color:'#8a2424', desc:'Lamellar samurai cuirass. Proud and tough. +20% melee.' },
+    chest_aztec:   { name:'Aztec Chief Armor',slot:'chest', rarity:'mythical', price:24000, armor:58, hp:70, melee:0.30, shield:80, color:'#1f8a5a', desc:'Jade-and-gold warrior regalia of the sun-king. +30% melee, +80 shield.' },
     // LEGS (leggings)
     legs_jeans:    { name:'Jeans',            slot:'legs', rarity:'common',   price:0,    armor:2,  color:'#2a3a55', desc:'Sturdy denim. Better than bare legs.' },
     legs_cargo:    { name:'Cargo Pants',      slot:'legs', rarity:'uncommon', price:400,  armor:6,  beltSlots:1, color:'#4a4a30', desc:'Lots of pockets. +1 consumable slot.' },
@@ -165,6 +183,7 @@
       items:    { item_bandage: 2 }, // id -> count
       attach:   {},          // weaponId -> [attachIds]
       pets:     [],          // owned pet ids
+      companions: [],        // owned human partner ids
     },
     equipped: {
       primary: null,
@@ -172,10 +191,12 @@
       melee: 'melee_bat',
       helmet: 'helm_beanie', chest: 'chest_hoodie', legs: 'legs_jeans',
       boots: 'boots_sneak', gloves: 'gloves_finger', backpack: 'pack_small',
-      pet: null,             // equipped companion
+      pet: null,             // equipped animal companion
+      companions: [],        // equipped human partners (max 2)
       trapSlot: [],          // trap ids loaded
       belt: ['item_bandage'],// consumable ids loaded
     },
+    romance: {},             // companionId -> affection points
   };
 
   // ---------- PETS / COMPANIONS (fight alongside you) ----------
@@ -185,6 +206,13 @@
     pet_bear:  { name:'War Bear',        rarity:'rare',     price:2400, kind:'melee',  hp:460, spd:135, dmg:80, atkCd:1.0,  range:240, kb:240, big:true, color:'#6a5038', desc:'A massive armored bear. Slow, but mauls and flings the horde.' },
     pet_tiger: { name:'Siberian Tiger',  rarity:'epic',     price:3200, kind:'melee',  hp:230, spd:235, dmg:62, atkCd:0.6,  range:320, kb:120, leap:true, color:'#c8801a', desc:'Apex predator. Leaps onto zombies and shreds them apart.' },
     pet_drone: { name:'Combat Drone',    rarity:'epic',     price:3000, kind:'ranged', hp:100, spd:240, dmg:16, atkCd:0.16, range:340, color:'#3a4048', desc:'Hovering gun drone. Auto-fires on the nearest zombie and never reloads.' },
+  };
+
+  // ---------- HUMAN COMPANIONS / PARTNERS (max 2 equipped) ----------
+  T.COMPANIONS = {
+    comp_medic:    { name:'Field Medic',      role:'Medic',    kind:'medic',    rarity:'rare',      price:3000, spd:200, heal:18, healCd:2.2, range:340, color:'#2f7ad0', romance:true, desc:'A combat nurse who follows you and patches you up mid-fight. Talk to her between rounds — and maybe more. ♥' },
+    comp_engineer: { name:'Combat Engineer',  role:'Engineer', kind:'engineer', rarity:'epic',      price:5000, spd:175, buildCd:9, turret:'turret_auto', range:300, color:'#caa030', desc:'Deploys an auto-turret every few seconds and keeps your perimeter bristling with guns.' },
+    comp_soldier:  { name:'Mercenary Soldier',role:'Soldier',  kind:'soldier',  rarity:'legendary', price:8000, spd:190, dmg:42, atkCd:0.15, range:440, color:'#3a4a32', desc:'Elite hired gun — the most expensive partner. Lays down heavy, accurate fire on the horde.' },
   };
 
   // ---------- CRAZY DAVE — travelling arms dealer (dialogue) ----------
@@ -234,7 +262,7 @@
   };
 
   // unified lookup helper
-  T.lookup = id => T.WEAPONS[id] || T.TRAPS[id] || T.ITEMS[id] || T.ARMOR[id] || T.ATTACHMENTS[id] || T.PETS[id] || null;
-  T.kindOf = id => T.WEAPONS[id] ? 'weapon' : T.TRAPS[id] ? 'trap' : T.ITEMS[id] ? 'item' : T.ARMOR[id] ? 'armor' : T.ATTACHMENTS[id] ? 'attach' : T.PETS[id] ? 'pet' : null;
+  T.lookup = id => T.WEAPONS[id] || T.TRAPS[id] || T.ITEMS[id] || T.ARMOR[id] || T.ATTACHMENTS[id] || T.PETS[id] || T.COMPANIONS[id] || null;
+  T.kindOf = id => T.WEAPONS[id] ? 'weapon' : T.TRAPS[id] ? 'trap' : T.ITEMS[id] ? 'item' : T.ARMOR[id] ? 'armor' : T.ATTACHMENTS[id] ? 'attach' : T.PETS[id] ? 'pet' : T.COMPANIONS[id] ? 'companion' : null;
 
 })(window.TAC);

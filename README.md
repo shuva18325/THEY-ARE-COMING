@@ -18,6 +18,10 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ## 📸 Screenshots
 
+| 👑 The King Set + ★Mythical shop + Cheats | 💬 Squad / romance (marry the medic) | ♥ "Happily Ever After" ending |
+|---|---|---|
+| ![king](screenshots/22_king_loadout.png) | ![squad](screenshots/25_squad_romance.png) | ![ending](screenshots/28_ending.png) |
+
 | Samurai armor + RPG + a **pet tiger** | Pets shop (K-9 / bear / tiger / drone) | RPG rocket + pet in combat |
 |---|---|---|
 | ![samurai](screenshots/17_samurai_loadout.png) | ![pets](screenshots/18_pets_shop.png) | ![rocket](screenshots/20_rocket_pet_combat.png) |
@@ -62,8 +66,8 @@ audio unlocks cleanly.)
 |---|---|
 | **WASD** | Move in all directions |
 | **Mouse** | Aim — the operative always faces the cursor |
-| **LEFT-CLICK** | **Melee / stab** (your equipped melee weapon) |
-| **RIGHT-CLICK** | **Fire the weapon** (hold for automatics) |
+| **LEFT-CLICK** | **Fire the weapon** (hold for automatics) |
+| **RIGHT-CLICK** | **Melee / stab** (your equipped melee weapon) |
 | **R** | Reload |
 | **Shift** | Sprint (drains stamina) |
 | **Q** | Swap primary / secondary |
