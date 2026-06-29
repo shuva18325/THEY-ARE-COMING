@@ -473,7 +473,7 @@
     drawSlash(x, s) {
       const a = T.clamp(s.life / s.max, 0, 1);
       x.save(); x.translate(s.x, s.y); x.rotate(s.a);
-      x.strokeStyle = (s.gold ? 'rgba(255,220,120,' : 'rgba(255,255,255,') + a + ')'; x.lineWidth = s.gold ? 3 : 2;
+      x.strokeStyle = (s.fire ? 'rgba(255,140,40,' : (s.gold ? 'rgba(255,220,120,' : 'rgba(255,255,255,')) + a + ')'; x.lineWidth = (s.gold || s.fire) ? 3 : 2;
       x.beginPath(); x.arc(0, 0, s.range, -s.arc, s.arc); x.stroke();
       x.restore();
     }

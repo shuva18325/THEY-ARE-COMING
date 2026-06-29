@@ -547,12 +547,13 @@
         if (d < rng + z.def.r) {
           const a = T.angle(this.x, this.y, z.x, z.y);
           if (Math.abs(T.angleDiff(this.angle, a)) < w.arc) {
-            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2), gold: w.goldKill });
+            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2), gold: w.goldKill, fire: w.fire });
             hit = true;
           }
         }
       }
-      G.meleeSlash = { x: this.x, y: this.y, a: this.angle, arc: w.arc, range: rng, life: 0.12, max: 0.12, gold: w.goldKill };
+      if (w.fire) for (let i = 0; i < 6; i++) { const fa = this.angle + T.rand(-w.arc, w.arc); G.particles.fire(this.x + Math.cos(fa) * rng * 0.7, this.y + Math.sin(fa) * rng * 0.7, 1); }
+      G.meleeSlash = { x: this.x, y: this.y, a: this.angle, arc: w.arc, range: rng, life: 0.12, max: 0.12, gold: w.goldKill, fire: w.fire };
       if (hit) G.particles.shakeBy(w.lunge ? 4 : 2);
     }
     useConsumable(G) {

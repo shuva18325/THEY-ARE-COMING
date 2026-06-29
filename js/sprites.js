@@ -26,7 +26,7 @@
     const fam = w.fam;
     const lenMap = { Pistol:9, SMG:13, Rifle:18, Shotgun:15, Sniper:24, LMG:19, Special:16, Melee:14 };
     let L = lenMap[fam] || 14;
-    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18 }[id] || 14;
+    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18, melee_blaze:20 }[id] || 14;
     if (fam === 'Mythical') L = { myth_tengeshima:24, myth_aztec_staff:20, myth_king_orb:18 }[id] || 20;
     const H = 9, axis = 4;
     const { c, x } = cv(L + 2, H + 2);
@@ -148,6 +148,12 @@
       } else if (id === 'melee_chainsaw') {
         P(2, axis - 2, 6, 5, '#c84a1a'); P(2, axis - 2, 6, 1, '#e87a3a'); P(3, axis + 2, 2, 2, '#1a1a1a');
         P(8, axis - 1, L - 8, 2, '#9aa0a8'); for (let i = 8; i < L; i += 2) P(i, axis - 2, 1, 1, '#555'); P(L - 1, axis - 1, 1, 2, '#777');
+      } else if (id === 'melee_blaze') {       // blazing katana
+        P(2, axis, 4, 1, '#1a1a1a'); P(2, axis, 1, 1, '#7a1f1f');     // wrapped handle
+        P(6, axis - 1, 1, 3, '#caa84a');                              // tsuba
+        P(7, axis - 1, L - 7, 2, '#ffd24a'); P(7, axis - 1, L - 7, 1, '#ffe9a8'); // glowing blade
+        for (let i = 8; i < L; i += 2) { P(i, axis - 2, 1, 1, '#ff8a2a'); P(i + 1, axis + 1, 1, 1, '#c83a1a'); } // flames
+        P(L - 1, axis - 2, 1, 2, '#fff');
       } else if (id === 'melee_mjolnir') {     // thunder hammer
         P(2, axis, L - 6, 1, '#5a4a32'); P(2, axis - 1, 5, 1, '#7a5a33');
         P(L - 7, axis - 4, 6, 9, '#9aa0a8'); P(L - 7, axis - 4, 6, 1, '#cfd6e0'); P(L - 7, axis + 4, 6, 1, '#5a5f66');
@@ -446,13 +452,17 @@
       ctx.fillStyle = '#2faa4a'; ctx.fillRect(-0.5, -10, 1, 2); ctx.fillRect(-1.5, -9.5, 3, 1); // green cross (cap)
       ctx.fillStyle = '#2faa4a'; ctx.fillRect(-1, -1, 2, 1); ctx.fillRect(-0.5, -2, 1, 3);        // green cross (chest)
     } else if (d.kind === 'engineer') {
-      ctx.fillStyle = '#f2c14e'; ctx.fillRect(-3, -9, 6, 2); ctx.fillRect(-4, -7, 8, 1);
+      ctx.fillStyle = '#cfd6e0'; ctx.fillRect(-4, 0, 8, 1);           // hi-vis reflective stripe
+      ctx.fillStyle = '#f2c14e'; ctx.fillRect(-3, -10, 6, 2); ctx.fillRect(-4, -8, 8, 1); // hard hat + brim
+      ctx.fillStyle = '#fff'; ctx.fillRect(-1, -9, 1, 1);            // headlamp
+      ctx.save(); ctx.rotate(c.angle); ctx.fillStyle = '#888'; ctx.fillRect(3, -0.5, 5, 1); ctx.fillStyle = '#aaa'; ctx.fillRect(7, -1, 2, 2); ctx.restore(); // wrench
     } else {
-      ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-3, -9, 6, 2);
+      ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-3, -10, 6, 2); ctx.fillRect(-3, -8, 6, 1); // helmet + strap
+      ctx.fillStyle = '#caa030'; ctx.fillRect(-4, 0, 8, 1);          // bandolier
       ctx.save(); ctx.rotate(c.angle);
       ctx.fillStyle = '#6a4a2a'; ctx.fillRect(0, -1, 6, 2);     // tanegashima wood stock
       ctx.fillStyle = '#caa030'; ctx.fillRect(3, -1, 2, 2);     // brass lock
-      ctx.fillStyle = '#2b2d31'; ctx.fillRect(5, -0.5, 10, 1);  // long matchlock barrel
+      ctx.fillStyle = '#2b2d31'; ctx.fillRect(5, -0.5, 11, 1);  // long matchlock barrel
       ctx.restore();
     }
     ctx.restore();
@@ -506,6 +516,42 @@
     P(-9, -19, 18, 6, CAP); P(-9, -19, 18, 2, '#fff'); P(-9, -14, 18, 1, CAPD);
     P(-9, -19, 2, 6, CAPD); P(7, -19, 2, 6, CAPD);
     P(-1, -18, 2, 4, GREEN); P(-2, -17, 4, 2, GREEN);
+  };
+
+  // detailed SOLDIER (mercenary) portrait
+  S.drawSoldierPortrait = function (ctx) {
+    const P = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+    const SKIN = '#d8a878', SKND = '#b8885c';
+    ctx.imageSmoothingEnabled = false;
+    P(-16, 9, 32, 16, '#3a4a2e'); P(-16, 9, 32, 2, '#4a5a38'); P(-16, 18, 32, 7, '#2e3a24'); // vest
+    P(-13, 12, 5, 6, '#2a3320'); P(8, 12, 5, 6, '#2a3320'); // pouches
+    P(-12, 11, 24, 2, '#4a3a1a'); for (let i = -5; i < 6; i++) P(i * 2, 11, 1, 2, i % 2 ? '#caa84a' : '#a07a30'); // bandolier
+    P(-4, 4, 8, 7, SKIN); P(-4, 9, 8, 2, SKND);          // neck
+    P(-8, -11, 16, 18, SKIN); P(-8, 5, 16, 2, SKND);     // face
+    ctx.fillStyle = '#3a2e22'; for (let i = 0; i < 28; i++) ctx.fillRect(-7 + ((i * 5) % 14), 2 + ((i * 3) % 5), 1, 1); // stubble
+    P(-7, -4, 5, 1, '#2a1e14'); P(2, -4, 5, 1, '#2a1e14');
+    P(-6, -2, 4, 3, '#fff'); P(2, -2, 4, 3, '#fff');
+    P(-5, -2, 2, 3, '#3a4a32'); P(3, -2, 2, 3, '#3a4a32');
+    P(-4, -1, 1, 2, '#16201a'); P(4, -1, 1, 2, '#16201a');
+    P(-1, 1, 2, 2, SKND); P(-3, 4, 6, 1, '#7a4a40'); P(4, -3, 1, 4, '#c89a6a'); // nose, mouth, scar
+    P(-9, -15, 18, 5, '#3a4a2a'); P(-9, -15, 18, 2, '#4a5a38'); P(-9, -11, 18, 1, '#2a3320'); // helmet
+    P(-10, -12, 2, 3, '#2a3320'); P(8, -12, 2, 3, '#2a3320'); P(-2, -16, 4, 2, '#222'); P(-1, -17, 2, 1, '#5fc6e8'); // ear pads + NVG
+  };
+  // detailed ENGINEER portrait
+  S.drawEngineerPortrait = function (ctx) {
+    const P = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+    const SKIN = '#e2b487', SKND = '#c0925f';
+    ctx.imageSmoothingEnabled = false;
+    P(-16, 9, 32, 16, '#caa030'); P(-16, 9, 32, 2, '#e0c050');           // hi-vis vest
+    P(-16, 14, 32, 2, '#cfd6e0'); P(-16, 20, 32, 2, '#cfd6e0'); P(-2, 9, 4, 16, '#3a3a30'); // stripes + zip
+    P(-4, 4, 8, 7, SKIN); P(-4, 9, 8, 2, SKND);
+    P(-8, -11, 16, 18, SKIN); P(-8, 5, 16, 2, SKND);
+    ctx.fillStyle = '#5a4632'; for (let i = 0; i < 16; i++) ctx.fillRect(-6 + ((i * 5) % 12), 3 + ((i * 3) % 4), 1, 1);
+    P(-9, -6, 18, 3, '#2a2a2a'); P(-7, -5, 5, 2, '#7fc8e0'); P(2, -5, 5, 2, '#7fc8e0'); // goggles
+    P(-6, -1, 4, 3, '#fff'); P(2, -1, 4, 3, '#fff'); P(-5, -1, 2, 2, '#3a2e1a'); P(3, -1, 2, 2, '#3a2e1a');
+    P(-1, 2, 2, 2, SKND); P(-3, 5, 6, 1, '#a85a50');
+    P(-10, -13, 20, 5, '#f2c14e'); P(-10, -13, 20, 2, '#ffe08a'); P(-11, -9, 22, 2, '#d8a830'); // hard hat
+    P(-1, -16, 2, 3, '#d8a830'); P(-1, -12, 2, 2, '#fff');               // ridge + headlamp
   };
 
   // ---------------- FRONT-FACING PORTRAITS ----------------
@@ -693,7 +739,10 @@
     } else if (kind === 'pet') {
       drawPetIcon(x, id, size);
     } else if (kind === 'companion') {
-      if (id === 'comp_medic') { const s = size / 46; x.scale(s, s); x.translate(0, -1); S.drawMedicPortrait(x); }
+      const s = size / 46;
+      if (id === 'comp_medic') { x.scale(s, s); x.translate(0, -1); S.drawMedicPortrait(x); }
+      else if (id === 'comp_soldier') { x.scale(s, s); x.translate(0, -1); S.drawSoldierPortrait(x); }
+      else if (id === 'comp_engineer') { x.scale(s, s); x.translate(0, -1); S.drawEngineerPortrait(x); }
       else drawCompanionIcon(x, id, size);
     }
     x.restore();
