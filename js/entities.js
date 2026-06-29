@@ -157,6 +157,14 @@
           dmg *= 0.25;
         } else dmg *= 0.6;
       }
+      if (this.def.shielded && !opt.ap && !opt.crit) { // riot shield blocks frontal fire
+        const incoming = fromAng + Math.PI; // points back toward the shooter
+        if (Math.abs(T.angleDiff(this.angle, incoming)) < 1.1) {
+          deflected = true; dmg *= 0.1;
+          G.particles.spark(this.x + Math.cos(this.angle) * this.def.r, this.y + Math.sin(this.angle) * this.def.r, this.angle + Math.PI, 6, '#cfd6e0');
+          T.Audio.spark();
+        } else dmg *= 0.7;
+      }
       dmg = Math.round(dmg);
       this.hp -= dmg;
       this.hurtFlash = 0.08;
@@ -502,6 +510,7 @@
         G.bullets.push(new Bullet(mx, my, this.angle, w, { spread: sp, dmg, pierce: (w.pierce || 0) + (w._pierce || 0), range: w.range * w._rangeMul, spd: w.spd * w._spdMul, ap, fire, crit, chain: w.chain || 0, owner: 'player' }));
       }
       G.particles.muzzle(mx, my, this.angle, w.fam === 'Shotgun' || w.fam === 'LMG' ? 1.4 : 1);
+      if (w.bullet === 'lightning') { G.particles.smoke(mx, my, 3, 'rgba(190,200,210,0.45)'); G.particles.light(mx, my, 26, 'rgba(159,232,255,0.6)', 0.08); }
       this.recoilKick = Math.min(4, w.recoil * 0.6);
       this.kbx -= Math.cos(this.angle) * w.recoil * 1.5; this.kby -= Math.sin(this.angle) * w.recoil * 1.5;
       G.particles.shakeBy(w.recoil * 0.25);

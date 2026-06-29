@@ -41,25 +41,40 @@
     // ---------------- SQUAD / TALK / ROMANCE ----------------
     openSquad() { this.renderSquadList(); $('#squad').classList.add('active'); }
     squadGreet(cid) {
-      const c = T.COMPANIONS[cid];
-      if (c.romance) { const r = this.G.state.romance[cid] || 0; return r >= 80 ? '“…I think I love you, you idiot. ♥”' : (r >= 40 ? '“Good to see you made it back in one piece.”' : '“Oh — hey. Didn\'t expect company.”'); }
-      return '“Ready when you are.”';
+      if (cid !== 'comp_medic') return '“Ready when you are.”';
+      const L = this.G.state.love;
+      if (L.married) return '“My partner. My everything. Let\'s make it home together. ♥”';
+      if (L.intimate) return '“…last night was real, wasn\'t it? Stay close to me out there.”';
+      if (L.kissed) return '“I keep thinking about that kiss, you know. Don\'t you dare die.”';
+      if (L.pts >= 40) return '“Good to see you back on the bus in one piece, handsome.”';
+      return '“Oh — hey. Didn\'t expect company back here.”';
     }
     renderSquadList() {
       const wrap = $('#squadList'); wrap.innerHTML = '';
       const active = (this.G.state.equipped.companions || []);
-      if (!active.length) { wrap.innerHTML = '<p class="dim" style="max-width:480px;margin:0 auto 12px">No partners deployed. Buy a Medic, Engineer, or Soldier in the shop (the <b>Companions</b> tab) and equip them in your loadout — then come back to talk.</p>'; return; }
+      if (!active.length) { wrap.innerHTML = '<p class="dim" style="max-width:480px;margin:0 auto 12px">No partners aboard. Buy a Medic, Engineer, or Soldier in the shop (<b>Companions</b> tab) and equip them — then come back to talk between waves.</p>'; return; }
       active.forEach(cid => {
         const c = T.COMPANIONS[cid];
         const row = el('div', 'squad-row');
-        const pic = T.Sprites.icon(cid, 56); pic.className = 'squad-portrait'; row.appendChild(pic);
+        const pic = T.Sprites.icon(cid, 60); pic.className = 'squad-portrait'; row.appendChild(pic);
         const info = el('div', 'squad-info');
-        let hearts = '';
-        if (c.romance) { const r = this.G.state.romance[cid] || 0; const f = Math.round(r / 20); hearts = `<div class="hearts">${'♥'.repeat(f)}${'♡'.repeat(5 - f)}</div>`; }
-        info.innerHTML = `<div class="squad-name">${c.name}</div><div class="ctype">${c.role}</div>${hearts}<div class="squad-line" id="line_${cid}">${this.squadGreet(cid)}</div>`;
+        let extra = '';
+        if (cid === 'comp_medic') {
+          const L = this.G.state.love, f = Math.round(L.pts / 20);
+          const status = L.married ? 'Married 💍' : (L.intimate ? 'Together 🌙' : (L.kissed ? 'Dating ♥' : (L.pts >= 40 ? 'Close' : 'New aboard')));
+          extra = `<div class="hearts">${'♥'.repeat(f)}${'♡'.repeat(5 - f)} <span class="love-status">${status}</span></div><div class="love-bar"><div class="love-fill" style="width:${L.pts}%"></div></div>`;
+        }
+        info.innerHTML = `<div class="squad-name">${c.name}</div><div class="ctype">${c.role}</div>${extra}<div class="squad-line" id="line_${cid}">${this.squadGreet(cid)}</div>`;
         const btns = el('div', 'squad-btns');
-        const t = el('button', 'btn', 'Talk'); t.onclick = () => this.squadTalk(cid, 'talk'); btns.appendChild(t);
-        if (c.romance) { const f = el('button', 'btn', '♥ Flirt'); f.onclick = () => this.squadTalk(cid, 'flirt'); btns.appendChild(f); }
+        const mk = (label, fn) => { const b = el('button', 'btn', label); b.onclick = fn; btns.appendChild(b); };
+        mk('Talk', () => this.squadTalk(cid, 'talk'));
+        if (c.romance) {
+          const L = this.G.state.love;
+          mk('♥ Flirt', () => this.squadTalk(cid, 'flirt'));
+          if (L.pts >= 50 && !L.kissed) mk('💋 Kiss', () => this.squadMilestone('kiss'));
+          if (L.pts >= 80 && !L.intimate) mk('🌙 Private Time', () => this.squadMilestone('intimate'));
+          if (L.pts >= 100 && !L.married) mk('💍 Propose', () => this.squadMilestone('marry'));
+        }
         info.appendChild(btns); row.appendChild(info); wrap.appendChild(row);
       });
     }
@@ -67,28 +82,37 @@
       const c = T.COMPANIONS[cid];
       let line;
       if (kind === 'flirt' && c.romance) {
-        this.G.state.romance[cid] = Math.min(100, (this.G.state.romance[cid] || 0) + 20);
+        const L = this.G.state.love; L.flirts = (L.flirts || 0) + 1; L.pts = Math.min(100, L.pts + 3);
         line = T.pick(this.FLIRT[c.kind] || ['…']);
       } else line = T.pick(this.TALK[c.kind] || ['…']);
       this.renderSquadList();
       const ln = $('#line_' + cid); if (ln) ln.textContent = '“' + line + '”';
       T.Audio.tone(kind === 'flirt' ? 560 : 420, 0.06, 'sine', 0.08);
     }
+    squadMilestone(kind) {
+      const L = this.G.state.love; let line;
+      if (kind === 'kiss') { L.kissed = true; L.pts = Math.min(100, L.pts + 8); line = 'You lean across the bus seat and kiss her. She smiles against your lips. “…About time, soldier.” ♥'; }
+      else if (kind === 'intimate') { L.intimate = true; L.pts = 100; line = 'Dave parks the bus for the night and politely looks away. You two get some… private time in the back. 🌙'; }
+      else if (kind === 'marry') { L.married = true; L.pts = 100; line = 'You propose right there in the aisle. Dave slams the horn in celebration. “YES — a thousand times yes!” 💍'; }
+      this.renderSquadList();
+      const ln = $('#line_comp_medic'); if (ln) ln.textContent = '“' + line + '”';
+      T.Audio.coin();
+    }
     showEnding() {
       const G = this.G, eq = G.state.equipped;
       const medic = (eq.companions || []).includes('comp_medic');
-      const rom = G.state.romance['comp_medic'] || 0, w = G.wave - 1;
-      let title, text;
-      if (medic && rom >= 80) { title = '♥ HAPPILY EVER AFTER'; text = `You and the medic lay down your guns and walk into a quieter dawn. In the safe settlements beyond the wall you marry, build a little house, and — years later, in a world finally free of the dead — raise children who'll know the horde only as a bedtime story. You cleared Wave ${w}. You won at life.`; }
-      else if (medic && rom >= 40) { title = 'A QUIET PEACE'; text = `You and the medic find a fortified town and stay. It isn't quite romance — not yet — but it's warm, and it's safe, and after Wave ${w}, that's everything. Maybe, in time, a family. ♥`; }
-      else if (medic || rom > 0) { title = 'THE LONG ROAD'; text = `You hang up your weapons and drift between settlements. The medic waves from the gate as you go. Some bonds don't survive the apocalypse. You reached Wave ${w} — and lived to wonder what might have been.`; }
-      else { title = 'THE LONE WANDERER'; text = `No partners, no ties — just you and the long grey road. You walk out of the quarantine zone alone, a legend nobody will believe. Wave ${w} cleared. The end… for now.`; }
+      const L = G.state.love, w = G.wave - 1; let title, text, romant = false;
+      if (medic && L.married && L.intimate) { romant = true; title = '♥ HAPPILY EVER AFTER'; text = `You and the medic step off Dave's bus for the last time into a quieter dawn. You marry, build a little house behind the safe-zone wall, and — years later, in a world finally free of the dead — raise the children you started a family for on that bus. They'll know the horde only as a bedtime story. Wave ${w} cleared. You won at life.`; }
+      else if (medic && L.married) { romant = true; title = '💍 TWO SURVIVORS, ONE VOW'; text = `You and the medic marry in the first safe town the bus reaches. The road was hell, but you walk it together now — and maybe, someday soon, a family of your own. Wave ${w} cleared.`; }
+      else if (medic && (L.kissed || L.pts >= 50)) { romant = true; title = 'A QUIET PEACE'; text = `You and the medic find a fortified town and stay. It isn't quite "ever after" yet — but it's warm, it's safe, and after Wave ${w}, that's everything. Maybe, in time. ♥`; }
+      else if (medic || L.pts > 0) { title = 'THE LONG ROAD'; text = `You hang up your weapons and drift between settlements. The medic waves from the bus window as Dave drives on without you. Some bonds don't survive the apocalypse. Wave ${w} — and you live to wonder what might have been.`; }
+      else { title = 'THE LONE WANDERER'; text = `No partners, no ties — just you and the long grey road. You step off the bus alone, a legend nobody will believe. Wave ${w} cleared. The end… for now.`; }
       $('#endTitle').textContent = title; $('#endText').textContent = text;
       const c = $('#endArt'), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
-      x.save(); x.translate(46, 92); x.scale(2.2, 2.2); T.Sprites.drawPlayerPortrait(x, G.gearColors(), eq.primary || eq.secondary); x.restore();
-      if (medic && rom >= 40) {
-        x.save(); x.translate(92, 96); x.scale(2.4, 2.4); T.Sprites.drawCompanion(x, { def: T.COMPANIONS['comp_medic'], x: 0, y: 0, walk: 0, moving: false, angle: 0 }); x.restore();
-        x.fillStyle = '#ff5a8a'; x.font = 'bold 18px monospace'; x.fillText('♥', 60, 36);
+      x.save(); x.translate(romant ? 42 : 65, 92); x.scale(2.2, 2.2); T.Sprites.drawPlayerPortrait(x, G.gearColors(), eq.primary || eq.secondary); x.restore();
+      if (romant) {
+        x.save(); x.translate(92, 60); x.scale(1.5, 1.5); T.Sprites.drawMedicPortrait(x); x.restore();
+        x.fillStyle = '#ff5a8a'; x.font = 'bold 18px monospace'; x.fillText('♥', 62, 40);
       }
       this.showScreen('ending');
     }

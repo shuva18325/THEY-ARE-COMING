@@ -115,10 +115,13 @@
         P(L - 1, axis, 1, 1, '#ccc');              // bolt tip
       }
     } else if (fam === 'Mythical') {
-      if (id === 'myth_tengeshima') {              // Lugh's lightning spear
-        P(1, axis, L - 6, 1, '#caa84a'); P(1, axis - 1, 6, 1, '#ffe08a');
-        P(L - 6, axis - 3, 4, 7, '#bfeaff'); P(L - 3, axis - 1, 3, 1, '#fff'); P(L - 3, axis, 3, 1, '#7fdfff');
-        P(L - 7, axis - 4, 1, 9, '#9fe8ff'); grip(3);
+      if (id === 'myth_tengeshima') {              // electrified tanegashima matchlock
+        P(0, axis - 1, 6, 3, '#6a4a2a'); P(0, axis, 2, 3, '#5a3a1f');   // wooden stock + butt
+        P(0, axis - 1, 6, 1, '#86603a');
+        P(5, axis - 1, 4, 3, '#caa030'); P(5, axis - 2, 1, 2, '#8a6a20'); // brass lock + serpentine
+        P(8, axis - 1, L - 8, 2, '#2b2d31'); P(8, axis - 1, L - 8, 1, '#4a4d52'); // long barrel
+        P(L - 4, axis - 1, 4, 2, '#9fe8ff'); P(L - 1, axis - 2, 1, 4, '#fff'); // muzzle lightning
+        for (let i = 9; i < L - 2; i += 3) P(i, axis - 2, 1, 1, '#9fe8ff');     // arcing sparks
       } else if (id === 'myth_aztec_staff') {      // sun-king fire staff
         P(1, axis, L - 6, 1, '#7a5a2a'); P(1, axis - 1, 5, 1, '#a07a3a');
         P(L - 6, axis - 3, 5, 7, '#caa84a'); P(L - 6, axis - 3, 5, 1, '#ffe08a');
@@ -330,6 +333,13 @@
       ctx.fillStyle = '#d8d0c0'; ctx.fillRect(-r * 0.1, -r, 2, r * 0.4); ctx.fillRect(r * 0.3, -r * 0.9, 2, r * 0.3);
       ctx.fillStyle = '#7a1414'; ctx.fillRect(-r * 0.5, -r * 0.1, r, 1.5);
     }
+    if (d.shielded) { // big riot shield held in front (facing +x = toward player)
+      ctx.fillStyle = '#23272c'; ctx.fillRect(r * 0.75, -r * 1.15, 3.5, r * 2.3);
+      ctx.fillStyle = 'rgba(150,170,190,0.5)'; ctx.fillRect(r * 0.78, -r * 1.05, 2.4, r * 2.1);
+      ctx.fillStyle = '#cfd6e0'; ctx.fillRect(r * 0.75, -r * 1.15, 2, 1);
+      ctx.fillStyle = '#101316'; ctx.fillRect(r * 0.75, -2, 3.5, 4);       // viewport slit
+      ctx.fillStyle = '#f2c14e'; ctx.fillRect(r * 0.82, -r * 0.4, 1, r * 0.8); // hazard stripe
+    }
     ctx.restore();
   };
 
@@ -431,15 +441,19 @@
     ctx.fillStyle = OL; ctx.beginPath(); ctx.arc(0, -6, 3.4, 0, T.TAU); ctx.fill();
     ctx.fillStyle = '#c79c74'; ctx.beginPath(); ctx.arc(0, -6, 2.8, 0, T.TAU); ctx.fill();
     if (d.kind === 'medic') {
-      ctx.fillStyle = '#d8b24a'; ctx.fillRect(-3, -8, 6, 2);
-      ctx.fillStyle = '#fff'; ctx.fillRect(-2, -9, 4, 2);
-      ctx.fillStyle = '#c33'; ctx.fillRect(-0.5, -9, 1, 2); ctx.fillRect(-1.5, -8.5, 3, 1);
-      ctx.fillStyle = '#c33'; ctx.fillRect(-1, -1, 2, 1); ctx.fillRect(-0.5, -2, 1, 3);
+      ctx.fillStyle = '#6a3a26'; ctx.fillRect(-4, -8, 8, 3);            // brown hair
+      ctx.fillStyle = '#fff'; ctx.fillRect(-2, -10, 4, 2);             // cap
+      ctx.fillStyle = '#2faa4a'; ctx.fillRect(-0.5, -10, 1, 2); ctx.fillRect(-1.5, -9.5, 3, 1); // green cross (cap)
+      ctx.fillStyle = '#2faa4a'; ctx.fillRect(-1, -1, 2, 1); ctx.fillRect(-0.5, -2, 1, 3);        // green cross (chest)
     } else if (d.kind === 'engineer') {
       ctx.fillStyle = '#f2c14e'; ctx.fillRect(-3, -9, 6, 2); ctx.fillRect(-4, -7, 8, 1);
     } else {
       ctx.fillStyle = '#3a4a2a'; ctx.fillRect(-3, -9, 6, 2);
-      ctx.save(); ctx.rotate(c.angle); ctx.fillStyle = '#2b2d31'; ctx.fillRect(2, -1, 9, 2); ctx.fillStyle = '#16171a'; ctx.fillRect(10, -1, 2, 2); ctx.restore();
+      ctx.save(); ctx.rotate(c.angle);
+      ctx.fillStyle = '#6a4a2a'; ctx.fillRect(0, -1, 6, 2);     // tanegashima wood stock
+      ctx.fillStyle = '#caa030'; ctx.fillRect(3, -1, 2, 2);     // brass lock
+      ctx.fillStyle = '#2b2d31'; ctx.fillRect(5, -0.5, 10, 1);  // long matchlock barrel
+      ctx.restore();
     }
     ctx.restore();
   };
@@ -453,6 +467,46 @@
     else { x.fillStyle = '#3a4a2a'; x.fillRect(-9 * sc, -12 * sc, 18 * sc, 5 * sc); }
     x.fillStyle = '#1a1a1a'; x.fillRect(-4 * sc, -4 * sc, 2 * sc, 2 * sc); x.fillRect(2 * sc, -4 * sc, 2 * sc, 2 * sc);
   }
+
+  // detailed front-facing NURSE portrait (matches the reference art) — drawn around origin
+  S.drawMedicPortrait = function (ctx) {
+    const P = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+    const HAIR = '#6a3a26', HAIRD = '#4a2818', HAIRH = '#86502f',
+      SKIN = '#f3cea3', SKND = '#dba87c', BLUSH = '#ec9a9a',
+      UNI = '#eef3f8', UNID = '#cdd9e6', CAP = '#ffffff', CAPD = '#dde6ef', GREEN = '#2faa4a',
+      IRIS = '#3f7fc8', LIP = '#d8696e', OL = '#2a1c14';
+    ctx.imageSmoothingEnabled = false;
+    // uniform / shoulders
+    P(-16, 10, 32, 15, UNI); P(-16, 10, 32, 2, '#fff'); P(-16, 19, 32, 6, UNID);
+    P(-5, 9, 10, 5, UNID); P(-3, 9, 6, 4, UNI); P(-1, 9, 2, 7, UNID); // collar V
+    P(-1, 13, 2, 2, '#9fb0c2'); P(-1, 17, 2, 2, '#9fb0c2');           // buttons
+    P(-4, 4, 8, 7, SKIN); P(-4, 9, 8, 2, SKND);                       // neck
+    // hair back mass + side curls
+    P(-13, -16, 26, 28, HAIRD); P(-13, -14, 26, 9, HAIR);
+    P(-14, -2, 4, 13, HAIR); P(10, -2, 4, 13, HAIR);
+    P(-15, 3, 3, 6, HAIRD); P(12, 3, 3, 6, HAIRD);
+    // face
+    P(-9, -12, 18, 20, SKIN); P(-9, 6, 18, 2, SKND); P(-9, -12, 18, 2, SKND);
+    // hair front (bangs/waves)
+    P(-10, -15, 20, 6, HAIR); P(-10, -15, 20, 2, HAIRH);
+    P(-10, -9, 3, 8, HAIR); P(7, -9, 3, 8, HAIR);
+    P(-9, -10, 4, 3, HAIRD); P(5, -10, 4, 3, HAIRD); P(-3, -13, 6, 3, HAIR);
+    // brows + eyes
+    P(-7, -5, 5, 1, HAIRD); P(2, -5, 5, 1, HAIRD);
+    P(-7, -3, 5, 4, '#fff'); P(2, -3, 5, 4, '#fff');
+    P(-5, -3, 3, 4, IRIS); P(3, -3, 3, 4, IRIS);
+    P(-4, -2, 2, 3, '#16202c'); P(4, -2, 2, 3, '#16202c');
+    P(-4, -3, 1, 1, '#fff'); P(4, -3, 1, 1, '#fff');
+    P(-7, -3, 1, 1, OL); P(6, -3, 1, 1, OL);
+    // nose + blush + smile
+    P(-1, 1, 2, 2, SKND);
+    P(-8, 2, 3, 2, BLUSH); P(5, 2, 3, 2, BLUSH);
+    P(-3, 5, 6, 1, LIP); P(-2, 6, 4, 1, '#b84a50');
+    // nurse cap with green cross
+    P(-9, -19, 18, 6, CAP); P(-9, -19, 18, 2, '#fff'); P(-9, -14, 18, 1, CAPD);
+    P(-9, -19, 2, 6, CAPD); P(7, -19, 2, 6, CAPD);
+    P(-1, -18, 2, 4, GREEN); P(-2, -17, 4, 2, GREEN);
+  };
 
   // ---------------- FRONT-FACING PORTRAITS ----------------
   // detailed standing survivor for the loadout preview (matches the reference art)
@@ -639,7 +693,8 @@
     } else if (kind === 'pet') {
       drawPetIcon(x, id, size);
     } else if (kind === 'companion') {
-      drawCompanionIcon(x, id, size);
+      if (id === 'comp_medic') { const s = size / 46; x.scale(s, s); x.translate(0, -1); S.drawMedicPortrait(x); }
+      else drawCompanionIcon(x, id, size);
     }
     x.restore();
     ICON_CACHE[key] = c;

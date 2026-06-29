@@ -36,6 +36,7 @@
       o.attachUnlocked = o.attachUnlocked || []; o.pets = o.pets || []; o.companions = o.companions || [];
       this.state.equipped.companions = this.state.equipped.companions || [];
       this.state.romance = this.state.romance || {};
+      this.state.love = this.state.love || { pts: 0, flirts: 0, kissed: false, intimate: false, married: false };
       this.mode = 'hub';
       this.ui.showScreen('hub');
       this.ui.renderHub();
@@ -223,6 +224,7 @@
       add('z_walker', 6); add('z_crawler', 3); add('z_runner', 4); add('z_dog', 2);
       add('z_spitter', 2); add('z_screamer', 1); add('z_bloater', 2); add('z_armored', 2);
       add('z_brute', 1); add('z_stalker', this.env && this.env.light === 'night' ? 3 : 1);
+      add('z_rioter', N >= 8 ? 2 : 1);
       return pool.length ? T.pick(pool) : 'z_walker';
     }
 
@@ -333,14 +335,23 @@
       this.state.cash += bonus; this.score += bonus;
       const sal = this.isBoss ? 0 : (T.chance(0.5) ? 1 : 0);
       this.state.salvage += sal;
-      this.ui.waveComplete([
+      // medic romance: gain 5-10 affection per wave depending on how much you flirted
+      const rows = [
         ['Wave Survived', this.wave],
         ['Kills This Run', this.kills],
         ['Clear Bonus', '$' + bonus],
         ['Salvage Found', '◆ ' + (sal + (this.isBoss ? 3 : 0))],
         ['Cash on Hand', '$' + T.fmt(this.state.cash)],
         ['Score', T.fmt(this.score)],
-      ]);
+      ];
+      const L = this.state.love, medicOn = (this.state.equipped.companions || []).includes('comp_medic');
+      if (medicOn && L && !L.married) {
+        const aff = Math.min(10, 5 + (L.flirts || 0));
+        L.pts = Math.min(100, L.pts + aff); L.flirts = 0;
+        const hearts = '♥'.repeat(Math.round(L.pts / 20)) + '♡'.repeat(5 - Math.round(L.pts / 20));
+        rows.push(['Affection · Medic', '+' + aff + '  ' + hearts]);
+      }
+      this.ui.waveComplete(rows);
       this.wave++;
     }
 

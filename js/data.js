@@ -148,6 +148,7 @@
     z_armored: { name:'Armored',     hp:170, spd:52,  dmg:20, r:12, cash:30, score:45, color:'#52585a', tier:5, behavior:'seek', armored:true },
     z_brute:   { name:'Brute',       hp:440, spd:32,  dmg:30, r:20, cash:45, score:60, color:'#4a5a3a', tier:5, behavior:'seek', big:true, kb:0.3 },
     z_stalker: { name:'Night Stalker',hp:96, spd:114, dmg:22, r:10, cash:35, score:50, color:'#3a3a4a', tier:6, behavior:'seek', night:true, alpha:0.55 },
+    z_rioter:  { name:'Riot Brute',   hp:340, spd:46, dmg:28, r:13, cash:45, score:60, color:'#46505a', tier:6, behavior:'seek', shielded:true },
     // BOSSES
     z_boss_behemoth: { name:'THE BEHEMOTH', hp:4200, spd:34, dmg:50, r:36, cash:600, score:1000, color:'#5a4a3a', boss:true, big:true, slam:true },
     z_boss_mother:   { name:'THE MOTHER',   hp:3200, spd:24, dmg:34, r:32, cash:550, score:900,  color:'#7a5a6a', boss:true, big:true, births:true },
@@ -196,7 +197,8 @@
       trapSlot: [],          // trap ids loaded
       belt: ['item_bandage'],// consumable ids loaded
     },
-    romance: {},             // companionId -> affection points
+    romance: {},             // legacy companionId -> affection points
+    love: { pts: 0, flirts: 0, kissed: false, intimate: false, married: false }, // medic romance
   };
 
   // ---------- PETS / COMPANIONS (fight alongside you) ----------
@@ -210,7 +212,7 @@
 
   // ---------- HUMAN COMPANIONS / PARTNERS (max 2 equipped) ----------
   T.COMPANIONS = {
-    comp_medic:    { name:'Field Medic',      role:'Medic',    kind:'medic',    rarity:'rare',      price:3000, spd:200, heal:18, healCd:2.2, range:340, color:'#2f7ad0', romance:true, desc:'A combat nurse who follows you and patches you up mid-fight. Talk to her between rounds — and maybe more. ♥' },
+    comp_medic:    { name:'Field Medic',      role:'Medic',    kind:'medic',    rarity:'rare',      price:3000, spd:200, heal:18, healCd:2.2, range:340, color:'#e9eef4', romance:true, desc:'A combat nurse who follows you and patches you up mid-fight. Talk to her between rounds — flirt, kiss, and maybe build a life together. ♥' },
     comp_engineer: { name:'Combat Engineer',  role:'Engineer', kind:'engineer', rarity:'epic',      price:5000, spd:175, buildCd:9, turret:'turret_auto', range:300, color:'#caa030', desc:'Deploys an auto-turret every few seconds and keeps your perimeter bristling with guns.' },
     comp_soldier:  { name:'Mercenary Soldier',role:'Soldier',  kind:'soldier',  rarity:'legendary', price:8000, spd:190, dmg:42, atkCd:0.15, range:440, color:'#3a4a32', desc:'Elite hired gun — the most expensive partner. Lays down heavy, accurate fire on the horde.' },
   };
@@ -218,11 +220,11 @@
   // ---------- CRAZY DAVE — travelling arms dealer (dialogue) ----------
   T.DAVE = {
     enter: [
-      "WABBY-WABBO! Heh— I mean, WELCOME, survivor! Step into Dave's Emporium of Doom!",
+      "Welcome aboard the BUS, survivor! I'm Dave — I drive, I deal, I do NOT do refunds.",
+      "Keep the dead off my bus and I'll keep us rolling. Need gear for the next stop?",
+      "This bus is the last safe place on Earth. Probably. Don't quote me. Buy somethin'!",
       "I can make you SURVIVE... for a price. Heh heh heh heh.",
-      "You smell that? That's COMMERCE. And zombies. Mostly zombies.",
-      "Guns! Traps! Questionable medicine! Dave's got it ALL, friend!",
-      "I traded my house for these guns. I don't remember owning a house. WORTH IT.",
+      "Every stop, more of 'em come. Every stop, I sell you the cure: BULLETS.",
     ],
     return: [
       "You're ALIVE?! Heh! I had twenty bucks on the horde. Spend your blood money!",

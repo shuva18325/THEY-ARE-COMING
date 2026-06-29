@@ -18,6 +18,10 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ## 📸 Screenshots
 
+| 🚑 Romance the medic (heart bar, kiss → marry) | ♥ Marry & raise kids ending | ⚡ Tengeshima (tanegashima) vs riot-shield zombies |
+|---|---|---|
+| ![romance](screenshots/30_medic_romance.png) | ![nurse-ending](screenshots/34_ending_nurse.png) | ![tengeshima](screenshots/33_tengeshima_riot.png) |
+
 | 👑 The King Set + ★Mythical shop + Cheats | 💬 Squad / romance (marry the medic) | ♥ "Happily Ever After" ending |
 |---|---|---|
 | ![king](screenshots/22_king_loadout.png) | ![squad](screenshots/25_squad_romance.png) | ![ending](screenshots/28_ending.png) |

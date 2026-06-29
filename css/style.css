@@ -45,6 +45,8 @@ button.btn.deploy:hover{ background:linear-gradient(#b51d1d,#7a1414); }
 .title{ font-size:62px; letter-spacing:4px; color:#cdd4bd; text-shadow:3px 3px 0 #000,0 0 18px rgba(180,30,30,.4); }
 .title .bleed{ color:var(--blood); text-shadow:3px 3px 0 #000, 0 0 22px rgba(180,30,30,.9); }
 .subtitle{ color:var(--dim); letter-spacing:2px; margin-top:-6px; }
+.lore{ color:#b8c0a8; font-size:13px; max-width:560px; line-height:1.5; margin:6px auto 0; font-style:italic; }
+.lore b{ color:var(--warn); font-style:normal; }
 .menu-buttons{ display:flex; gap:14px; margin-top:10px; }
 .howto{ margin-top:10px; background:rgba(0,0,0,.55); border:2px solid var(--edge);
   padding:14px 22px; text-align:left; max-width:560px; }
@@ -243,6 +245,9 @@ button.btn.deploy:hover{ background:linear-gradient(#b51d1d,#7a1414); }
 .squad-info{ flex:1; min-width:0; }
 .squad-name{ font-weight:bold; font-size:14px; color:#fff; }
 .hearts{ color:#ff5a8a; letter-spacing:3px; margin:2px 0; font-size:14px; }
+.love-status{ color:var(--warn); font-size:11px; letter-spacing:1px; margin-left:6px; }
+.love-bar{ height:7px; background:#000; box-shadow:inset 0 0 0 1px #5a2a3a; margin:3px 0 2px; max-width:240px; }
+.love-fill{ height:100%; background:linear-gradient(#ff7aa8,#c8325f); transition:width .2s; }
 .squad-line{ font-size:12px; color:var(--ink); font-style:italic; margin:4px 0; min-height:2.6em; line-height:1.35; }
 .squad-btns{ display:flex; gap:6px; margin-top:4px; }
 .squad-btns .btn{ font-size:12px; padding:5px 12px; }
