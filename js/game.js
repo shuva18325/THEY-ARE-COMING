@@ -18,7 +18,8 @@
       this.state = null; this.mode = 'menu';
       this.wave = 1; this.score = 0; this.kills = 0;
       this.zombies = []; this.bullets = []; this.traps = []; this.turrets = [];
-      this.throwables = []; this.hazards = []; this.props = []; this.pets = []; this.fxArcs = [];
+      this.throwables = []; this.hazards = []; this.props = []; this.pets = []; this.fxArcs = []; this.shockwaves = [];
+      this.beam = null;
       this.damageFlash = 0; this.meleeSlash = null;
       this.settings = { cheats: false, god: false, infAmmo: false, oneShot: false, startCash: 900 };
       this.ui = new T.UI(this);
@@ -62,6 +63,22 @@
       T.Audio.coin(); this.ui.renderHub();
     }
     addArc(x1, y1, x2, y2, color) { this.fxArcs.push({ x1, y1, x2, y2, color: color || '#bfeaff', life: 0.14, max: 0.14 }); }
+    addShockwave(x, y, max) { this.shockwaves.push({ x, y, r: 12, max, life: 0.5, maxLife: 0.5 }); }
+    fireBeam(p, w, dt) {
+      const range = w.range;
+      const x1 = p.x + Math.cos(p.angle) * 12, y1 = p.y + Math.sin(p.angle) * 12;
+      const x2 = p.x + Math.cos(p.angle) * range, y2 = p.y + Math.sin(p.angle) * range;
+      this.beam = { x1, y1, x2, y2 };
+      for (const z of this.zombies) {
+        if (z.dead) continue;
+        if (T.distToSeg(z.x, z.y, x1, y1, x2, y2) < z.def.r + 6) {
+          z.takeDamage(w.dmg * dt, p.angle, this, { ap: true });
+          if (T.chance(0.35)) this.particles.spark(z.x, z.y, T.rand(0, T.TAU), 2, '#bfeaff');
+          if (z.dead) this.particles.light(z.x, z.y, 24, 'rgba(180,230,255,0.7)', 0.16);
+        }
+      }
+      this.particles.muzzle(x1, y1, p.angle, 0.7);
+    }
 
     // ---------- derived stats ----------
     computeStats() {
@@ -95,7 +112,7 @@
       else if (h === 'helm_samurai' || c === 'chest_samurai') theme = 'samurai';
       else if (h === 'helm_aztec' || c === 'chest_aztec') theme = 'aztec';
       return {
-        skin: '#c79c74', theme,
+        skin: '#f0c8a0', theme, hair: '#7a4a28', helmetEquipped: !!eq.helmet,
         helmet: col('helmet', '#3a2a20'),
         chest: col('chest', '#3a4a3a'),
         legs: col('legs', '#2a3a55'),
@@ -109,7 +126,7 @@
       const w = T.WEAPONS[weaponId]; if (!w) return;
       const list = (this.state.owned.attach[weaponId] || []);
       w._dmgMul = 1; w._rangeMul = 1; w._spdMul = 1; w._reloadMul = 1; w._pierce = 0;
-      w._spread = w.spread; w._mag = w.mag; w._critAdd = 0; w._ap = false; w._fire = !!w.fire; w._silent = !!w.silent;
+      w._spread = w.spread || 0; w._mag = w.mag || 0; w._critAdd = 0; w._ap = false; w._fire = !!w.fire; w._silent = !!w.silent;
       list.forEach(aid => {
         const a = T.ATTACHMENTS[aid]; if (!a) return;
         const m = a.mods || {};
@@ -125,7 +142,7 @@
         if (a.fire) w._fire = true;
         if (a.silent) w._silent = true;
       });
-      w._reserve = Math.round(w.reserve * ammoMul);
+      w._reserve = Math.round((w.reserve || 0) * ammoMul);
     }
 
     // ---------- deploy / waves ----------
@@ -143,7 +160,7 @@
       this.player = new T.Player(this.arena.w / 2, this.arena.h / 2);
       this.player.initFromLoadout(stats, gear, ammo, eq);
       this.zombies.length = 0; this.bullets.length = 0; this.traps.length = 0;
-      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0; this.pets.length = 0; this.fxArcs.length = 0;
+      this.turrets.length = 0; this.throwables.length = 0; this.hazards.length = 0; this.pets.length = 0; this.fxArcs.length = 0; this.shockwaves.length = 0; this.beam = null;
       if (eq.pet && T.PETS[eq.pet]) this.pets.push(new T.Pet(this.player.x + 20, this.player.y + 12, eq.pet));
       (eq.companions || []).forEach((cid, i) => { if (cid && T.COMPANIONS && T.COMPANIONS[cid]) this.pets.push(new T.Companion(this.player.x - 18 - i * 14, this.player.y + 10, cid)); });
       this.particles.clear();
@@ -199,24 +216,33 @@
 
     startWave() {
       const N = this.wave;
-      this.isBoss = (N % 5 === 0);
+      this.bossId = this.bossForWave(N);
+      this.isBoss = !!this.bossId;
+      this._split = false;
       this.killedThisWave = 0;
       this.hpScale = 1 + (N - 1) * 0.08;
       this.spdScale = Math.min(1.55, 1 + (N - 1) * 0.015);
       this.spawnTimer = 1.2;
-      let count = 8 + N * 4;
+      let count = 8 + N * 4, bossName = '';
       if (this.isBoss) {
-        count = Math.round(count * 0.6);
-        const bossId = (N % 10 === 0) ? 'z_boss_mother' : 'z_boss_behemoth';
+        count = Math.round(count * 0.35); // far fewer adds so the elite/boss fights solo-ish
         const a = T.rand(0, T.TAU);
-        this.spawnAt(this.player.x + Math.cos(a) * 320, this.player.y + Math.sin(a) * 320, bossId, 1 + (N / 10));
+        this.spawnAt(this.player.x + Math.cos(a) * 330, this.player.y + Math.sin(a) * 330, this.bossId, 1 + (N / 12));
+        bossName = T.ZOMBIES[this.bossId].name;
       }
       this.toSpawn = count;
       this.totalThisWave = count + (this.isBoss ? 1 : 0);
-      this.aliveCap = 38 + N;
-      const sub = this.isBoss ? '⚠ BOSS WAVE ⚠' : this.totalThisWave + ' INFECTED INBOUND';
+      this.aliveCap = 36 + N;
+      const sub = this.isBoss ? ('⚠ ' + bossName + ' ⚠') : this.totalThisWave + ' INFECTED INBOUND';
       this.ui.waveBanner('WAVE ' + N, sub + '  —  ' + this.env.name);
       T.Audio.scream();
+    }
+    bossForWave(N) {
+      if (N % 15 === 0) return 'z_boss_overlord';                          // 15,30 — final boss (2 phases)
+      if (N === 8 || (N > 8 && (N - 8) % 15 === 0)) return 'z_boss_shadow';// 8,23 — Shadow Elite
+      if (N % 10 === 0) return 'z_boss_mother';                            // 10,20
+      if (N % 5 === 0) return 'z_boss_vanguard';                           // 5,25 — Vanguard Elite (nerfed)
+      return null;
     }
 
     waveType() {
@@ -284,6 +310,7 @@
 
     update(dt) {
       const p = this.player;
+      this.beam = null; // re-set each frame by the laser if firing
       // camera + mouse world
       this.cam.x = T.clamp(p.x - VW / 2, 0, this.arena.w - VW);
       this.cam.y = T.clamp(p.y - VH / 2, 0, this.arena.h - VH);
@@ -312,6 +339,7 @@
       for (const pr of this.props) if (pr.kind === 'fire' && T.chance(0.6)) this.particles.fire(pr.x, pr.y - 2, 1);
       this.particles.update(dt);
       for (let i = this.fxArcs.length - 1; i >= 0; i--) { this.fxArcs[i].life -= dt; if (this.fxArcs[i].life <= 0) this.fxArcs.splice(i, 1); }
+      for (let i = this.shockwaves.length - 1; i >= 0; i--) { const s = this.shockwaves[i]; s.r += (s.max - s.r) * dt * 6; s.life -= dt; if (s.life <= 0) this.shockwaves.splice(i, 1); }
       const cwm = this.player.curWeapon(); if (cwm && cwm.rarity === 'mythical' && T.chance(0.3)) this.particles.spark(this.player.x + T.rand(-6, 6), this.player.y + T.rand(-9, 3), -Math.PI / 2, 1, '#ffe08a');
 
       if (this.meleeSlash) { this.meleeSlash.life -= dt; if (this.meleeSlash.life <= 0) this.meleeSlash = null; }
@@ -411,6 +439,15 @@
       for (const t of this.throwables) t.draw(x);
       for (const b of this.bullets) b.draw(x);
       this.drawArcs(x);
+      // shockwave rings (boss attacks)
+      for (const s of this.shockwaves) { const a = T.clamp(s.life / s.maxLife, 0, 1); x.globalAlpha = a; x.strokeStyle = 'rgba(200,180,255,0.85)'; x.lineWidth = 3; x.beginPath(); x.arc(s.x, s.y, s.r, 0, T.TAU); x.stroke(); x.globalAlpha = 1; }
+      // evaporator beam
+      if (this.beam) {
+        x.globalAlpha = 0.4; x.strokeStyle = 'rgba(120,200,255,0.8)'; x.lineWidth = 7;
+        x.beginPath(); x.moveTo(this.beam.x1, this.beam.y1); x.lineTo(this.beam.x2, this.beam.y2); x.stroke();
+        x.globalAlpha = 1; x.strokeStyle = 'rgba(190,234,255,0.95)'; x.lineWidth = 3; x.stroke();
+        x.strokeStyle = '#fff'; x.lineWidth = 1.2; x.stroke();
+      }
       // particles & floaters
       this.particles.drawParts(x);
       this.particles.drawFloaters(x);

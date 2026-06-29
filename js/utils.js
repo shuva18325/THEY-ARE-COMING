@@ -32,6 +32,14 @@ window.TAC = window.TAC || {};
   // circle-vs-circle overlap
   T.overlap = (a, b) => T.dist2(a.x, a.y, b.x, b.y) < (a.r + b.r) * (a.r + b.r);
 
+  // distance from point to line segment (for the laser beam)
+  T.distToSeg = (px, py, x1, y1, x2, y2) => {
+    const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy;
+    let t = L2 ? ((px - x1) * dx + (py - y1) * dy) / L2 : 0;
+    t = t < 0 ? 0 : (t > 1 ? 1 : t);
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  };
+
   // rarity helpers
   T.RARITY = {
     common:    { name: 'COMMON',    color: '#9aa18c', mult: 1.0 },

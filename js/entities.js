@@ -182,6 +182,16 @@
       return { deflected, dmg };
     }
     die(G, fromAng) {
+      // OVERLORD phase 2 — splits into a Light and a Dark form you must both defeat
+      if (this.def.overlord && !G._split) {
+        G._split = true; this.dead = true; G.onZombieKilled(this);
+        G.particles.explosion(this.x, this.y, 90, false); G.particles.shakeBy(10);
+        G.particles.light(this.x, this.y, 90, 'rgba(180,120,255,0.8)', 0.5);
+        G.zombies.push(new Zombie(this.x - 52, this.y, 'z_boss_dark', G.hpScale, G.spdScale));
+        G.zombies.push(new Zombie(this.x + 52, this.y, 'z_boss_light', G.hpScale, G.spdScale));
+        G.ui.waveBanner('PHASE 2', 'LIGHT & DARK — destroy BOTH');
+        return;
+      }
       this.dead = true;
       G.onZombieKilled(this);
       if (this._goldDeath) {
@@ -271,6 +281,38 @@
       if (this.def.births) {
         this.summonCd = (this.summonCd || 0) - dt;
         if (this.summonCd <= 0) { this.summonCd = 3.5; for (let i = 0; i < 2; i++) { const a = T.rand(0, T.TAU); G.spawnAt(this.x + Math.cos(a) * 30, this.y + Math.sin(a) * 30, 'z_crawler'); } }
+      }
+      if (this.def.boss) this.bossTick(dt, G, dToP, ang);
+    }
+    bossTick(dt, G, dToP, ang) {
+      const d = this.def, p = G.player;
+      if (d.blink) { // teleport (Shadow / Dark)
+        this.blinkCd = (this.blinkCd == null ? T.rand(2, 4) : this.blinkCd) - dt;
+        if (this.blinkCd <= 0 && dToP > 130) {
+          this.blinkCd = T.rand(3, 5);
+          G.particles.smoke(this.x, this.y, 8, 'rgba(40,40,60,0.6)');
+          const step = Math.min(dToP - 70, 240);
+          this.x = T.clamp(this.x + Math.cos(ang) * step, 16, G.arena.w - 16);
+          this.y = T.clamp(this.y + Math.sin(ang) * step, 16, G.arena.h - 16);
+          G.particles.light(this.x, this.y, 40, 'rgba(120,140,255,0.5)', 0.3);
+        }
+      }
+      this.abilityCd = (this.abilityCd == null ? T.rand(3, 5) : this.abilityCd) - dt;
+      if (this.abilityCd > 0) return;
+      this.abilityCd = T.rand(3.5, 5.5);
+      if (d.shockwave && dToP < 320) {
+        G.addShockwave(this.x, this.y, 175); G.particles.explosion(this.x, this.y, 70, false); G.particles.shakeBy(7);
+        if (dToP < 180) { p.takeDamage(d.dmg * 0.6, G); const a2 = T.angle(this.x, this.y, p.x, p.y); p.kbx += Math.cos(a2) * 220; p.kby += Math.sin(a2) * 220; }
+      }
+      if (d.slash && dToP < 175) {
+        G.meleeSlash = { x: this.x, y: this.y, a: ang, arc: 1.2, range: 130, life: 0.18, max: 0.18, gold: d.light, fire: !d.light };
+        if (dToP < 145 && Math.abs(T.angleDiff(ang, T.angle(this.x, this.y, p.x, p.y))) < 1.2) p.takeDamage(d.dmg * 0.8, G);
+        G.particles.shakeBy(5);
+      }
+      if (d.summon) {
+        const addId = (d.overlord || d.light) ? 'z_purple_elite' : (d.shadow ? 'z_crawler' : 'z_runner');
+        for (let i = 0; i < 2; i++) { const a = T.rand(0, T.TAU); G.spawnAt(this.x + Math.cos(a) * 42, this.y + Math.sin(a) * 42, addId); }
+        G.particles.light(this.x, this.y, 50, d.light ? 'rgba(255,240,200,0.5)' : 'rgba(160,60,200,0.5)', 0.3);
       }
     }
     draw(ctx) {
@@ -453,6 +495,7 @@
       this.invuln = 0;
       this.beltIndex = 0;
       this.trapIndex = 0;
+      this.charge = null; this.overheat = false; // beam weapons
     }
     // called by game after stats computed; sets stats/gear/ammo
     initFromLoadout(stats, gear, ammo, eq) {
@@ -533,6 +576,18 @@
       }
       G.particles.shakeBy(5);
       if (!w._silent) T.Audio.explosion();
+    }
+    updateBeam(G, w, dt) {
+      if (this.charge == null) this.charge = w.charge;
+      if (T.Input.firing && this.charge > 0 && !this.overheat) {
+        this.charge = Math.max(0, this.charge - w.drain * dt);
+        if (this.charge <= 0) this.overheat = true;
+        G.fireBeam(this, w, dt);
+      } else {
+        this.charge = Math.min(w.charge, this.charge + w.recharge * dt);
+        if (this.charge > w.charge * 0.35) this.overheat = false;
+        G.beam = null;
+      }
     }
     doMelee(G) {
       if (this.meleeCd > 0) return;
@@ -629,9 +684,10 @@
       if (!G.blocked(this.x, ny, this.r)) this.y = ny;
       if (this.moving) this.walkPhase += dt * (sprint ? 16 : 11);
 
-      // firing (right-click held)
-      if (T.Input.firing) this.tryFire(G);
-      else { const w = this.curWeapon(); if (w && !w.auto) { /* semi resets on release handled by fireCd */ } }
+      // firing (left-click held) — beam weapons use a charge cell instead of ammo
+      const cwf = this.curWeapon();
+      if (cwf && cwf.beam) this.updateBeam(G, cwf, dt);
+      else if (T.Input.firing) this.tryFire(G);
       // reload finish
       if (this.reloading) { this.reloadT -= dt; if (this.reloadT <= 0) this.finishReload(); }
       // auto-reload when empty mag and not firing

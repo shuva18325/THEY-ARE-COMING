@@ -654,7 +654,8 @@
       $('#wpnName').textContent = w ? w.name : '—';
       const am = p.ammo[wid];
       const ammoEl = $('#ammo');
-      if (p.reloading) { ammoEl.textContent = 'RELOADING'; ammoEl.classList.add('low'); }
+      if (w && w.beam) { ammoEl.textContent = p.overheat ? 'OVERHEAT' : ('⚡ ' + Math.round(p.charge || 0) + '%'); ammoEl.classList.toggle('low', p.overheat || (p.charge || 0) < 25); }
+      else if (p.reloading) { ammoEl.textContent = 'RELOADING'; ammoEl.classList.add('low'); }
       else if (am) { ammoEl.textContent = am.mag + ' / ' + am.reserve; ammoEl.classList.toggle('low', am.mag <= w._mag * 0.25); }
       // gun icon
       const gc = $('#hudGun'); const gx = gc.getContext('2d'); gx.imageSmoothingEnabled = false; gx.clearRect(0, 0, gc.width, gc.height);

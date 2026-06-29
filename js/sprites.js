@@ -26,7 +26,7 @@
     const fam = w.fam;
     const lenMap = { Pistol:9, SMG:13, Rifle:18, Shotgun:15, Sniper:24, LMG:19, Special:16, Melee:14 };
     let L = lenMap[fam] || 14;
-    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18, melee_blaze:20 }[id] || 14;
+    if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18, melee_blaze:20, heaven_excalibur:21 }[id] || 14;
     if (fam === 'Mythical') L = { myth_tengeshima:24, myth_aztec_staff:20, myth_king_orb:18 }[id] || 20;
     const H = 9, axis = 4;
     const { c, x } = cv(L + 2, H + 2);
@@ -80,7 +80,15 @@
       P(8, axis - 2, 4, 1, GUN_DK);
       grip(3); P(0, axis - 1, 2, 3, GUN_DK);
     } else if (fam === 'Special') {
-      if (w.bullet === 'flame') {
+      if (id === 'spec_evap') {                    // particle laser emitter
+        P(1, axis - 1, L - 4, 3, '#2a3540'); P(1, axis - 1, L - 4, 1, '#5fc6e8');
+        P(L - 5, axis - 1, 5, 2, '#9fe8ff'); P(L - 1, axis - 2, 1, 4, '#fff');
+        P(3, axis + 2, 3, 4, '#5fc6e8'); grip(4);
+      } else if (id === 'heaven_gjallar') {        // golden horn launcher
+        P(1, axis - 2, L - 5, 5, '#caa030'); P(1, axis - 2, L - 5, 1, '#ffe9a8');
+        P(L - 5, axis - 3, 5, 7, '#f2c14e'); P(L - 5, axis - 3, 5, 1, '#fff7d8');
+        P(2, axis + 2, 2, 4, '#fff'); grip(5);
+      } else if (w.bullet === 'flame') {
         P(2, axis - 1, L - 5, 3, GUNMETAL);
         P(L - 6, axis, 6, 1, '#e07a2a');           // nozzle glow
         P(L - 2, axis - 1, 2, 3, '#f2c14e');
@@ -162,6 +170,11 @@
         P(2, axis, L - 6, 1, '#caa84a'); P(2, axis - 1, L - 8, 1, '#ffe08a'); P(2, axis + 1, L - 8, 1, '#a8862a');
         P(L - 6, axis - 4, 1, 9, '#ffe08a'); P(L - 8, axis - 1, 5, 1, '#ffe08a');
         P(L - 6, axis - 5, 1, 1, '#fff'); P(L - 6, axis + 4, 1, 1, '#c83a1a');
+      } else if (id === 'heaven_excalibur') {  // radiant holy sword
+        P(2, axis, 4, 1, '#caa030'); P(3, axis - 1, 1, 3, '#ffe9a8');        // gold hilt + guard
+        P(6, axis - 1, L - 6, 2, '#fff7d8'); P(6, axis - 1, L - 6, 1, '#ffffff'); // radiant blade
+        for (let i = 7; i < L; i += 3) P(i, axis, 1, 1, '#ffe9a8');
+        P(L - 1, axis - 2, 1, 4, '#fff');
       } else { // machete
         P(2, axis, 4, 1, '#3a2a1a'); P(6, axis - 1, L - 6, 2, '#c8ccd0'); P(6, axis - 1, L - 6, 1, '#e8ecf0');
       }
@@ -241,27 +254,30 @@
       }
     }
 
-    // head: outline, skin, gas mask, knit camo helmet, glowing goggles up front
+    // head: outline, skin, then hair (or helmet) — the boy
     ctx.fillStyle = OL; ctx.beginPath(); ctx.arc(2, 0, 4.7, 0, T.TAU); ctx.fill();
     roundDot(ctx, 2, 0, 4, g.skin);
-    ctx.fillStyle = '#9a9a90'; ctx.fillRect(3, -2, 3, 4);          // gas mask
-    ctx.fillStyle = '#6f6f66'; ctx.fillRect(4, -1, 2, 2);          // filter
-    ctx.fillStyle = g.helmet; ctx.beginPath(); ctx.arc(1, 0, 4.4, Math.PI * 0.42, Math.PI * 1.58); ctx.fill();
-    ctx.fillStyle = shade(g.helmet, -0.3); ctx.fillRect(-2, -3, 2, 1); ctx.fillRect(-2, 2, 2, 1);
-    ctx.fillStyle = shade(g.helmet, 0.2); ctx.fillRect(-1, -4, 3, 1);
-    ctx.fillStyle = '#241a10'; ctx.fillRect(3.5, -3, 2, 6);        // goggle band
-    ctx.fillStyle = '#ff9a2a'; ctx.fillRect(4.5, -2.6, 1.6, 2); ctx.fillRect(4.5, 0.6, 1.6, 2);
-    ctx.fillStyle = '#ffe28a'; ctx.fillRect(4.7, -2.2, 1, 1); ctx.fillRect(4.7, 1, 1, 1);
+    if (g.helmetEquipped) {
+      ctx.fillStyle = g.helmet; ctx.beginPath(); ctx.arc(1, 0, 4.4, Math.PI * 0.42, Math.PI * 1.58); ctx.fill();
+      ctx.fillStyle = shade(g.helmet, -0.3); ctx.fillRect(-2, -3, 2, 1); ctx.fillRect(-2, 2, 2, 1);
+      ctx.fillStyle = shade(g.helmet, 0.2); ctx.fillRect(-1, -4, 3, 1);
+    } else {
+      const hair = g.hair || '#7a4a28';
+      ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(0.8, 0, 4.5, Math.PI * 0.34, Math.PI * 1.66); ctx.fill();
+      ctx.fillStyle = shade(hair, 0.22); ctx.fillRect(-2, -4, 4, 1);
+      ctx.fillStyle = shade(hair, -0.28); ctx.fillRect(-3, 2, 3, 2);
+    }
+    ctx.fillStyle = '#2a2420'; ctx.fillRect(5, -1.6, 1, 1); ctx.fillRect(5, 0.8, 1, 1); // eyes
     // themed flourishes (samurai crest / aztec feathers / king crown / heavenly halo)
     if (g.theme === 'samurai') { ctx.fillStyle = '#f2c14e'; ctx.fillRect(2, -6, 1, 3); ctx.fillRect(4, -6, 1, 3); }
     else if (g.theme === 'aztec') { ctx.fillStyle = '#1f8a5a'; for (let i = -2; i <= 2; i++) ctx.fillRect(-3, i, 2, 1); ctx.fillStyle = '#f2c14e'; ctx.fillRect(-4, 0, 1, 1); }
     else if (g.theme === 'king') { ctx.fillStyle = '#f2c14e'; ctx.fillRect(-1, -6, 6, 1); ctx.fillRect(0, -7, 1, 1); ctx.fillRect(2, -7, 1, 1); ctx.fillRect(4, -7, 1, 1); }
     else if (g.theme === 'heaven') { ctx.fillStyle = '#fff7d8'; ctx.fillRect(-1, -8, 6, 1); }
-    // subtle goggle glow
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255,150,40,0.12)'; ctx.beginPath(); ctx.arc(6, 0, 6, 0, T.TAU); ctx.fill();
-    if (g.theme === 'king' || g.theme === 'heaven') { ctx.fillStyle = 'rgba(255,210,90,0.18)'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, T.TAU); ctx.fill(); }
-    ctx.globalCompositeOperation = 'source-over';
+    if (g.theme === 'king' || g.theme === 'heaven') {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(255,210,90,0.18)'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, T.TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+    }
     ctx.restore();
   };
 
@@ -338,6 +354,24 @@
     if (d.boss) {
       ctx.fillStyle = '#d8d0c0'; ctx.fillRect(-r * 0.1, -r, 2, r * 0.4); ctx.fillRect(r * 0.3, -r * 0.9, 2, r * 0.3);
       ctx.fillStyle = '#7a1414'; ctx.fillRect(-r * 0.5, -r * 0.1, r, 1.5);
+    }
+    if (d.shadow) {
+      ctx.fillStyle = '#2a2a3a'; ctx.fillRect(hx - r * 0.2, -r * 0.95, 2, r * 0.45); ctx.fillRect(hx + r * 0.35, -r * 0.9, 2, r * 0.4); // wispy horns
+      ctx.fillStyle = '#fff'; ctx.fillRect(hx + r * 0.25, -r * 0.22, 2, 2); ctx.fillRect(hx + r * 0.25, r * 0.08, 2, 2);          // glowing eyes
+      ctx.fillStyle = 'rgba(160,180,255,0.35)'; ctx.fillRect(hx + r * 0.15, -r * 0.3, r * 0.4, r * 0.6);
+    }
+    if (d.overlord || d.light || d.dark || d.purple) {
+      const plate = d.light ? '#d8d2c2' : (d.dark ? '#241634' : (d.purple ? '#6a4a7a' : '#4a2f5e'));
+      const crys = d.light ? '#fff' : '#b06ad8';
+      ctx.fillStyle = plate; ctx.fillRect(-r * 0.7, -r * 0.72, r * 1.4, r * 0.6);
+      ctx.fillStyle = crys; ctx.fillRect(-r * 0.42, -r * 0.46, r * 0.8, 2);
+      roundDot(ctx, -r * 0.45, -r * 0.82, r * 0.46, shade(plate, -0.2));
+      roundDot(ctx, -r * 0.45, r * 0.82, r * 0.46, shade(plate, -0.2));
+      ctx.fillStyle = shade(plate, -0.35); ctx.fillRect(hx - r * 0.1, -r * 0.98, 2, r * 0.42); ctx.fillRect(hx + r * 0.32, -r * 0.92, 2, r * 0.36); // horned crown
+      if (d.overlord || d.slash || d.shockwave) { // great sword
+        ctx.fillStyle = d.light ? '#fff7d8' : '#cfd6e0'; ctx.fillRect(r * 0.55, -r * 1.45, 2, r * 1.8);
+        ctx.fillStyle = crys; ctx.fillRect(r * 0.5, -r * 1.45, 3, 2);
+      }
     }
     if (d.shielded) { // big riot shield held in front (facing +x = toward player)
       ctx.fillStyle = '#23272c'; ctx.fillRect(r * 0.75, -r * 1.15, 3.5, r * 2.3);
@@ -558,66 +592,67 @@
   // detailed standing survivor for the loadout preview (matches the reference art)
   S.drawPlayerPortrait = function (ctx, gear, gunId) {
     gear = gear || {};
-    const skin = gear.skin || '#c79c74', jacket = gear.chest || '#5a6a4a',
-      pants = gear.legs || '#36405a', boots = gear.boots || '#2a2018',
-      helm = gear.helmet || '#5a5236', pack = gear.pack || '#3a4a6a', gloves = gear.gloves || '#2a2a2a';
-    const OL = '#0c0e0a';
+    const skin = gear.skin || '#f0c8a0', jacket = gear.chest || '#b03a2e',
+      pants = gear.legs || '#3a5a8a', boots = gear.boots || '#dfe3ea',
+      helm = gear.helmet || '#5a5236', pack = gear.pack || '#3a4a6a', gloves = gear.gloves || '#caa078',
+      hair = gear.hair || '#7a4a28';
+    const OL = '#241a14';
     const P = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
     ctx.imageSmoothingEnabled = false;
     // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0, 25, 13, 3, 0, 0, T.TAU); ctx.fill();
-    // backpack peeking on sides
-    P(-12, -4, 4, 17, OL); P(-11, -3, 3, 15, pack); P(-11, -3, 3, 3, shade(pack, 0.25));
-    P(9, -4, 4, 17, OL); P(9, -3, 3, 15, shade(pack, -0.12));
-    // legs
-    P(-7, 8, 14, 14, OL); P(-6, 9, 5, 12, pants); P(1, 9, 5, 12, pants);
-    P(-6, 9, 5, 2, shade(pants, 0.18)); P(1, 9, 5, 2, shade(pants, 0.18));
-    P(-6, 14, 2, 4, shade(pants, -0.25)); P(3, 14, 2, 4, shade(pants, -0.25)); // cargo pockets
-    // boots
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0, 26, 13, 3, 0, 0, T.TAU); ctx.fill();
+    // backpack peeking
+    P(-12, -3, 4, 16, OL); P(-11, -2, 3, 14, pack); P(-11, -2, 3, 3, shade(pack, 0.25));
+    P(9, -3, 4, 16, OL); P(9, -2, 3, 14, shade(pack, -0.12));
+    // legs (jeans)
+    P(-7, 9, 14, 13, OL); P(-6, 10, 5, 11, pants); P(1, 10, 5, 11, pants);
+    P(-6, 10, 5, 2, shade(pants, 0.18)); P(1, 10, 5, 2, shade(pants, 0.18));
+    P(-1, 11, 1, 10, shade(pants, -0.3));
+    // sneakers
     P(-7, 21, 6, 4, OL); P(0, 21, 6, 4, OL);
     P(-6, 21, 5, 3, boots); P(1, 21, 5, 3, boots);
-    P(-6, 23, 6, 1, shade(boots, -0.3)); P(1, 23, 6, 1, shade(boots, -0.3));
-    // torso jacket
-    P(-9, -8, 18, 18, OL); P(-8, -7, 16, 16, jacket);
-    P(-8, 4, 16, 5, shade(jacket, -0.25));
-    P(-6, -4, 4, 3, shade(jacket, -0.38)); P(2, -1, 4, 4, shade(jacket, -0.38));
-    P(-3, 3, 3, 3, shade(jacket, -0.38)); P(4, -6, 3, 3, shade(jacket, -0.38));
-    P(-7, -6, 5, 2, shade(jacket, 0.2)); P(0, -7, 4, 2, shade(jacket, 0.2));
-    P(-8, 8, 2, 2, OL); P(-3, 8, 2, 3, OL); P(2, 8, 2, 2, OL); P(6, 8, 2, 3, OL); // torn hem
-    // backpack straps + buckles
-    P(-7, -7, 2, 13, shade(pack, -0.1)); P(5, -7, 2, 13, shade(pack, -0.1));
-    P(-7, -7, 2, 2, shade(pack, 0.2)); P(5, -7, 2, 2, shade(pack, 0.2));
-    P(-7, 0, 2, 1, '#caa84a'); P(5, 0, 2, 1, '#caa84a');
-    // arms
-    P(-12, -6, 4, 12, OL); P(-11, -5, 3, 11, jacket); P(-11, 3, 3, 3, gloves);
-    P(8, -6, 4, 8, OL); P(8, -5, 3, 7, jacket);
-    P(0, 2, 9, 4, OL); P(1, 3, 8, 2, gloves);
-    // weapon across the body (red accent like the reference)
+    P(-6, 23, 6, 1, shade(boots, -0.25)); P(1, 23, 6, 1, shade(boots, -0.25));
+    P(-5, 22, 3, 1, shade(boots, -0.15)); P(2, 22, 3, 1, shade(boots, -0.15));
+    // torso: open jacket over white shirt
+    P(-9, -8, 18, 18, OL);
+    P(-4, -7, 8, 17, '#eef3f8');
+    P(-9, -7, 6, 17, jacket); P(3, -7, 6, 17, jacket);
+    P(-9, -7, 6, 2, shade(jacket, 0.2)); P(3, -7, 6, 2, shade(jacket, 0.2));
+    P(-9, 5, 6, 4, shade(jacket, -0.25)); P(3, 5, 6, 4, shade(jacket, -0.25));
+    P(-5, -8, 4, 2, shade(jacket, 0.1)); P(1, -8, 4, 2, shade(jacket, 0.1)); // collar
+    P(-1, -2, 1, 1, '#9fb0c2'); P(-1, 2, 1, 1, '#9fb0c2'); // shirt buttons
+    // arms (sleeves + hands)
+    P(-12, -6, 4, 13, OL); P(-11, -5, 3, 12, jacket); P(-11, 6, 3, 3, skin);
+    P(8, -6, 4, 13, OL); P(9, -5, 3, 12, jacket); P(9, 6, 3, 3, skin);
+    // weapon across the body
     if (gunId && S.gun(gunId)) {
       const gg = S.gun(gunId);
-      ctx.save(); ctx.translate(-3, 4); const sc = 0.95;
+      ctx.save(); ctx.translate(-3, 6); const sc = 0.9;
       ctx.drawImage(gg.canvas, 0, -gg.axis * sc, gg.canvas.width * sc, gg.canvas.height * sc);
       ctx.restore();
     }
-    P(7, 3, 2, 4, '#b51d1d'); // red grip/wrap detail
     // neck
     P(-3, -13, 6, 4, shade(skin, -0.1));
-    // head
-    P(-7, -26, 14, 16, OL); P(-6, -25, 12, 14, skin);
-    P(-6, -14, 12, 2, shade(skin, -0.25));
-    // gas mask
-    P(-6, -17, 12, 6, '#8f9088'); P(-6, -17, 12, 1, '#a8a8a0');
-    P(-3, -15, 6, 4, '#6a6b64'); P(-2, -14, 4, 2, '#4a4b44'); P(-6, -12, 12, 1, shade('#8f9088', -0.3));
-    P(-7, -19, 1, 4, '#3a3a32'); P(6, -19, 1, 4, '#3a3a32'); // mask straps
-    // goggles with glow
-    P(-7, -23, 14, 5, '#241a10');
-    P(-6, -22, 5, 3, '#160f06'); P(1, -22, 5, 3, '#160f06');
-    P(-5, -22, 3, 2, '#ff9a2a'); P(2, -22, 3, 2, '#ff9a2a');
-    P(-5, -22, 2, 1, '#ffe28a'); P(2, -22, 2, 1, '#ffe28a');
-    // knit camo helmet
-    P(-7, -29, 14, 6, OL); P(-6, -28, 12, 5, helm); P(-6, -28, 12, 2, shade(helm, 0.2));
-    P(-4, -27, 3, 2, shade(helm, -0.32)); P(1, -26, 3, 2, shade(helm, -0.32)); P(-1, -28, 2, 2, shade(helm, -0.32));
-    P(-7, -24, 2, 4, shade(helm, -0.15)); P(5, -24, 2, 4, shade(helm, -0.15)); // ear flaps
+    // head (big-eyed boy)
+    P(-8, -27, 16, 18, OL); P(-7, -26, 14, 16, skin);
+    P(-7, -13, 14, 2, shade(skin, -0.2));
+    P(-5, -20, 4, 5, '#fff'); P(1, -20, 4, 5, '#fff');         // eye whites
+    P(-4, -19, 3, 4, '#2a1c14'); P(2, -19, 3, 4, '#2a1c14');   // irises
+    P(-4, -19, 1, 1, '#fff'); P(2, -19, 1, 1, '#fff');         // sparkle
+    P(-6, -21, 4, 1, OL); P(2, -21, 4, 1, OL);                 // brows
+    P(-1, -14, 2, 1, shade(skin, -0.2)); P(-2, -12, 4, 1, '#a85a50'); // nose + mouth
+    P(-7, -14, 2, 2, '#e88a8a'); P(5, -14, 2, 2, '#e88a8a');   // blush
+    // hair or helmet
+    if (gear.helmetEquipped) {
+      P(-8, -29, 16, 6, OL); P(-7, -28, 14, 5, helm); P(-7, -28, 14, 2, shade(helm, 0.2));
+      P(-8, -24, 2, 4, shade(helm, -0.15)); P(6, -24, 2, 4, shade(helm, -0.15));
+    } else {
+      P(-8, -29, 16, 8, hair); P(-8, -29, 16, 2, shade(hair, 0.22));
+      P(-9, -24, 3, 7, hair); P(6, -24, 3, 7, hair);
+      P(-6, -23, 12, 2, shade(hair, -0.1));               // fringe over forehead
+      P(-5, -31, 3, 2, hair); P(0, -32, 3, 2, hair); P(4, -31, 3, 2, hair); // tousled tufts
+      P(-8, -22, 2, 4, shade(hair, -0.22)); P(6, -22, 2, 4, shade(hair, -0.22));
+    }
     // ---- themed regalia ----
     const th = gear.theme;
     if (th === 'samurai') {
@@ -636,11 +671,11 @@
       P(-7, -38, 14, 2, '#fff7d8'); P(-8, -37, 2, 2, '#fff7d8'); P(7, -37, 2, 2, '#fff7d8'); P(-5, -39, 10, 1, '#ffffff');
       P(-14, -7, 4, 9, '#f0f0e0'); P(10, -7, 4, 9, '#f0f0e0');
     }
-    // additive goggle glow
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255,150,40,0.18)'; ctx.fillRect(-8, -24, 16, 6);
-    if (th === 'king' || th === 'heaven') { ctx.fillStyle = 'rgba(255,210,90,0.2)'; ctx.fillRect(-12, -42, 24, 32); }
-    ctx.restore();
+    if (th === 'king' || th === 'heaven') {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(255,210,90,0.2)'; ctx.fillRect(-12, -42, 24, 34);
+      ctx.restore();
+    }
   };
 
   // CRAZY DAVE — eccentric merchant with a saucepan on his head

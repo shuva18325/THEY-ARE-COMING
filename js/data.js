@@ -57,6 +57,10 @@
 
     // ===== HEAVENLY (final, ultimate tier) =====
     heaven_judgment: { name:'Wrath of Heaven', fam:'Mythical', slot:'primary', rarity:'heavenly', price:80000, dmg:620, rpm:120, spd:0, spread:0, mag:36, reserve:600, reload:1.8, bullet:'goldlight', goldLightning:12, kb:160, recoil:6, range:1400, auto:true, perks:['HEAVENLY — divine lightning','Smites 12 at once','Erases entire hordes'], desc:'The judgment of the heavens. Call down a storm of holy lightning that scours the battlefield clean.' },
+    heaven_excalibur:{ name:'Excalibur',     fam:'Melee',   slot:'melee',   rarity:'heavenly', price:90000, dmg:680, range:86, swing:0.34, arc:2.0, kb:220, goldKill:true, perks:['HEAVENLY — the radiant blade','One sweeping stroke fells almost anything','Gilds the slain in gold'], desc:'The sword in the stone, reforged in light. A radiant arc that turns the dead to statues of gold.' },
+    heaven_gjallar:  { name:'Gjallarhorn',   fam:'Special', slot:'primary', rarity:'heavenly', price:95000, dmg:460, rpm:50, spd:560, spread:1, mag:3, reserve:24, reload:2.4, bullet:'rocket', aoe:175, fire:true, kb:240, recoil:9, range:840, auto:false, perks:['HEAVENLY — holy detonation','Colossal blast radius','Leaves sanctified fire'], desc:'A horn that fires shards of heaven — each shot a cataclysmic, sanctified explosion.' },
+    // charge-based evaporating laser
+    spec_evap:       { name:'Evaporator',     fam:'Special', slot:'primary', rarity:'legendary', price:7000, dmg:260, beam:true, charge:100, drain:34, recharge:22, range:560, kb:0, recoil:0, auto:true, perks:['Continuous evaporating beam','Drains a charge cell','Overheats if overused — then recharges'], desc:'A handheld particle laser. Hold to project a beam that vaporizes anything it touches — watch the charge or it overheats and must cool down.' },
   };
 
   // ---------- TRAPS & TURRETS (9) ----------
@@ -97,15 +101,16 @@
     helm_king:   { name:'King Crown',        slot:'helmet', rarity:'mythical',  price:35000, armor:60, hp:80, shield:250, color:'#f2c14e', desc:'The Holy Crown. Grants a massive +250 SHIELD — a golden second bar before your health.' },
     helm_aegis:  { name:'Aegis Halo',        slot:'helmet', rarity:'heavenly',  price:70000, armor:90, hp:150, shield:500, color:'#fff7d8', desc:'HEAVENLY. A radiant halo granting +500 shield and near-divine protection.' },
     // CHEST
-    chest_hoodie:  { name:'Hoodie',          slot:'chest', rarity:'common',    price:0,    armor:3,  color:'#3a4a3a', desc:'A comfy grey hoodie. Sentimental value only.' },
+    chest_hoodie:  { name:'Red Jacket',      slot:'chest', rarity:'common',    price:0,    armor:3,  color:'#b03a2e', desc:'A worn red jacket over a white tee. Home.' },
     chest_leather: { name:'Leather Jacket',  slot:'chest', rarity:'uncommon',  price:600,  armor:10, color:'#3a2a20', desc:'Thick biker leather. Resists bites.' },
     chest_kevlar:  { name:'Kevlar Vest',     slot:'chest', rarity:'rare',      price:1400, armor:22, hp:15, color:'#2a2a2a', desc:'Soft body armor. Stops claws and small bites.' },
     chest_plate:   { name:'Plate Carrier',   slot:'chest', rarity:'epic',      price:2600, armor:34, hp:25, spd:-0.03, color:'#3a3a30', desc:'Ceramic plates front and back. Serious protection.' },
     chest_jug:     { name:'Juggernaut Plate',slot:'chest', rarity:'legendary', price:4500, armor:50, hp:60, spd:-0.12, color:'#4a4a4a', desc:'Full siege armor. Slow, unstoppable, terrifying.' },
     chest_samurai: { name:'Samurai Dō',      slot:'chest', rarity:'epic',      price:3600, armor:40, hp:30, melee:0.20, spd:-0.04, color:'#8a2424', desc:'Lamellar samurai cuirass. Proud and tough. +20% melee.' },
     chest_aztec:   { name:'Aztec Chief Armor',slot:'chest', rarity:'mythical', price:24000, armor:58, hp:70, melee:0.30, shield:80, color:'#1f8a5a', desc:'Jade-and-gold warrior regalia of the sun-king. +30% melee, +80 shield.' },
+    chest_seraph:  { name:'Seraphic Plate',   slot:'chest', rarity:'heavenly', price:85000, armor:95, hp:180, shield:300, melee:0.30, spd:0.10, color:'#fff7d8', desc:'HEAVENLY. Angelic plate: +300 shield, big health, +30% melee, and a touch of angelic swiftness.' },
     // LEGS (leggings)
-    legs_jeans:    { name:'Jeans',            slot:'legs', rarity:'common',   price:0,    armor:2,  color:'#2a3a55', desc:'Sturdy denim. Better than bare legs.' },
+    legs_jeans:    { name:'Jeans',            slot:'legs', rarity:'common',   price:0,    armor:2,  color:'#3a5a8a', desc:'Sturdy blue denim.' },
     legs_cargo:    { name:'Cargo Pants',      slot:'legs', rarity:'uncommon', price:400,  armor:6,  beltSlots:1, color:'#4a4a30', desc:'Lots of pockets. +1 consumable slot.' },
     legs_tactical: { name:'Tactical Leggings',slot:'legs', rarity:'rare',     price:1000, armor:12, spd:0.04, color:'#2a3a2a', desc:'Lightweight armored weave. A touch faster.' },
     legs_greaves:  { name:'Armored Greaves',  slot:'legs', rarity:'epic',     price:2200, armor:24, spd:-0.04, color:'#444', desc:'Steel leg plates. Heavy but tough.' },
@@ -150,9 +155,14 @@
     z_brute:   { name:'Brute',       hp:440, spd:32,  dmg:30, r:20, cash:45, score:60, color:'#4a5a3a', tier:5, behavior:'seek', big:true, kb:0.3 },
     z_stalker: { name:'Night Stalker',hp:96, spd:114, dmg:22, r:10, cash:35, score:50, color:'#3a3a4a', tier:6, behavior:'seek', night:true, alpha:0.55 },
     z_rioter:  { name:'Riot Brute',   hp:340, spd:46, dmg:28, r:13, cash:45, score:60, color:'#46505a', tier:6, behavior:'seek', shielded:true },
-    // BOSSES
-    z_boss_behemoth: { name:'THE BEHEMOTH', hp:4200, spd:34, dmg:50, r:36, cash:600, score:1000, color:'#5a4a3a', boss:true, big:true, slam:true },
-    z_boss_mother:   { name:'THE MOTHER',   hp:3200, spd:24, dmg:34, r:32, cash:550, score:900,  color:'#7a5a6a', boss:true, big:true, births:true },
+    // ELITES / BOSSES
+    z_boss_vanguard: { name:'VANGUARD ELITE',  hp:2600, spd:38, dmg:44, r:32, cash:500,  score:900,  color:'#6a6a5a', boss:true, big:true, slam:true, armored:true },
+    z_boss_mother:   { name:'THE MOTHER',      hp:3200, spd:24, dmg:34, r:32, cash:600,  score:1000, color:'#7a5a6a', boss:true, big:true, births:true },
+    z_boss_shadow:   { name:'THE SHADOW ELITE',hp:3800, spd:64, dmg:42, r:30, cash:800,  score:1500, color:'#16161e', boss:true, big:true, shadow:true, alpha:0.82, blink:true, summon:true },
+    z_boss_overlord: { name:'THE OVERLORD',    hp:6500, spd:30, dmg:55, r:36, cash:1500, score:3000, color:'#3a1f4a', boss:true, big:true, overlord:true, shockwave:true, slash:true, summon:true },
+    z_boss_dark:     { name:'OVERLORD · DARK', hp:3000, spd:46, dmg:50, r:30, cash:400,  score:1200, color:'#1a1024', boss:true, big:true, shockwave:true, blink:true },
+    z_boss_light:    { name:'OVERLORD · LIGHT',hp:3000, spd:40, dmg:48, r:30, cash:400,  score:1200, color:'#e8e2d0', boss:true, big:true, summon:true, slash:true, light:true },
+    z_purple_elite:  { name:'Purple Elite',    hp:260,  spd:62, dmg:28, r:13, cash:40,   score:60,   color:'#5a3a6a', tier:99, behavior:'seek', armored:true, purple:true },
   };
 
   // ---------- ENVIRONMENTS + LIGHTING ----------
@@ -191,7 +201,7 @@
       primary: null,
       secondary: 'pistol_glock',
       melee: 'melee_bat',
-      helmet: 'helm_beanie', chest: 'chest_hoodie', legs: 'legs_jeans',
+      helmet: null, chest: 'chest_hoodie', legs: 'legs_jeans',
       boots: 'boots_sneak', gloves: 'gloves_finger', backpack: 'pack_small',
       pet: null,             // equipped animal companion
       companions: [],        // equipped human partners (max 2)

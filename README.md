@@ -18,7 +18,11 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ## 📸 Screenshots
 
-| 🚑 Romance the medic (heart bar, kiss → marry) | ♥ Marry & raise kids ending | ⚡ Tengeshima (tanegashima) vs riot-shield zombies |
+| 🧒 New base character (the boy) | ⚡ Evaporator charge-laser vs Shadow Elite (W8) | 👑 The Overlord — phase 2: Light & Dark |
+|---|---|---|
+| ![boy](screenshots/40_boy_loadout.png) | ![beam](screenshots/41_evaporator_shadow.png) | ![phase2](screenshots/43_overlord_phase2.png) |
+
+| 🚑 Romance the medic (heart bar, kiss → marry) | ♥ Marry & raise kids ending | ⚔️ Tengeshima (tanegashima) vs riot-shield zombies |
 |---|---|---|
 | ![romance](screenshots/30_medic_romance.png) | ![nurse-ending](screenshots/34_ending_nurse.png) | ![tengeshima](screenshots/33_tengeshima_riot.png) |
 
