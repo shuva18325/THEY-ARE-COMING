@@ -112,7 +112,7 @@
       else if (h === 'helm_samurai' || c === 'chest_samurai') theme = 'samurai';
       else if (h === 'helm_aztec' || c === 'chest_aztec') theme = 'aztec';
       return {
-        skin: '#f0c8a0', theme, hair: '#7a4a28', helmetEquipped: !!eq.helmet,
+        skin: '#f3cda2', theme, hair: '#c2632e', helmetEquipped: !!eq.helmet,
         helmet: col('helmet', '#3a2a20'),
         chest: col('chest', '#3a4a3a'),
         legs: col('legs', '#2a3a55'),
@@ -219,30 +219,45 @@
       this.bossId = this.bossForWave(N);
       this.isBoss = !!this.bossId;
       this._split = false;
+      this.bossPending = this.isBoss ? this.bossId : null;
+      this.bossSpawned = false;
       this.killedThisWave = 0;
       this.hpScale = 1 + (N - 1) * 0.08;
       this.spdScale = Math.min(1.55, 1 + (N - 1) * 0.015);
       this.spawnTimer = 1.2;
       let count = 8 + N * 4, bossName = '';
-      if (this.isBoss) {
-        count = Math.round(count * 0.35); // far fewer adds so the elite/boss fights solo-ish
-        const a = T.rand(0, T.TAU);
-        this.spawnAt(this.player.x + Math.cos(a) * 330, this.player.y + Math.sin(a) * 330, this.bossId, 1 + (N / 12));
-        bossName = T.ZOMBIES[this.bossId].name;
-      }
+      if (this.isBoss) { count = Math.round(count * 0.45); bossName = T.ZOMBIES[this.bossId].name; } // boss appears AFTER the goons
       this.toSpawn = count;
       this.totalThisWave = count + (this.isBoss ? 1 : 0);
       this.aliveCap = 36 + N;
-      const sub = this.isBoss ? ('⚠ ' + bossName + ' ⚠') : this.totalThisWave + ' INFECTED INBOUND';
+      // Wave 3 (and every 10th after): two gold-immune, shielded Golden Attackers
+      if (N === 3 || (N > 3 && (N - 3) % 10 === 0)) {
+        for (let i = 0; i < 2; i++) { const a = T.rand(0, T.TAU); this.spawnAt(this.player.x + Math.cos(a) * 340, this.player.y + Math.sin(a) * 340, 'z_golden_attacker'); }
+      }
+      const sub = this.isBoss ? ('CLEAR THE GOONS — then ⚠ ' + bossName + ' ⚠') : this.totalThisWave + ' INFECTED INBOUND';
       this.ui.waveBanner('WAVE ' + N, sub + '  —  ' + this.env.name);
       T.Audio.scream();
     }
     bossForWave(N) {
       if (N % 15 === 0) return 'z_boss_overlord';                          // 15,30 — final boss (2 phases)
       if (N === 8 || (N > 8 && (N - 8) % 15 === 0)) return 'z_boss_shadow';// 8,23 — Shadow Elite
-      if (N % 10 === 0) return 'z_boss_mother';                            // 10,20
-      if (N % 5 === 0) return 'z_boss_vanguard';                           // 5,25 — Vanguard Elite (nerfed)
+      if (N % 20 === 0) return 'z_boss_mother';                            // 20,40
+      if (N % 10 === 0) return 'z_boss_giant';                             // 10,50 — THE GOLDEN GIANT
+      if (N % 5 === 0) return 'z_boss_vanguard';                           // 5,25,35 — Vanguard Elite
       return null;
+    }
+    spawnBossNow() {
+      this.bossSpawned = true;
+      const p = this.player, a = T.rand(0, T.TAU);
+      this.spawnAt(p.x + Math.cos(a) * 330, p.y + Math.sin(a) * 330, this.bossPending, 1 + (this.wave / 12));
+      this.ui.waveBanner('⚠ ' + T.ZOMBIES[this.bossPending].name + ' ⚠', 'the goons are dead — now face the boss');
+      this.particles.shakeBy(8); T.Audio.scream();
+    }
+    bossLaser(x, y, ang, range, dmg) {
+      const x2 = x + Math.cos(ang) * range, y2 = y + Math.sin(ang) * range;
+      this.fxArcs.push({ x1: x, y1: y, x2, y2, color: '#ffd24a', life: 0.32, max: 0.32, thick: true });
+      if (T.distToSeg(this.player.x, this.player.y, x, y, x2, y2) < 16) this.player.takeDamage(dmg, this);
+      this.particles.shakeBy(4); T.Audio.shot('Sniper');
     }
 
     waveType() {
@@ -355,8 +370,11 @@
 
       this.ui.updateHUD();
 
-      // wave complete?
-      if (this.toSpawn <= 0 && this.zombies.length === 0 && this.mode === 'play') this.completeWave();
+      // wave complete? (on boss waves the boss only appears once the goons are dead)
+      if (this.toSpawn <= 0 && this.zombies.length === 0 && this.mode === 'play') {
+        if (this.bossPending && !this.bossSpawned) this.spawnBossNow();
+        else this.completeWave();
+      }
     }
 
     completeWave() {
@@ -519,6 +537,10 @@
     drawArcs(x) {
       for (const arc of this.fxArcs) {
         const al = T.clamp(arc.life / arc.max, 0, 1);
+        if (arc.thick) { // straight laser beam (Golden Giant)
+          x.globalAlpha = al * 0.5; x.strokeStyle = arc.color; x.lineWidth = 9; x.beginPath(); x.moveTo(arc.x1, arc.y1); x.lineTo(arc.x2, arc.y2); x.stroke();
+          x.globalAlpha = al; x.strokeStyle = '#fff7d8'; x.lineWidth = 3; x.stroke(); x.globalAlpha = 1; continue;
+        }
         const segs = 6, dx = (arc.x2 - arc.x1) / segs, dy = (arc.y2 - arc.y1) / segs;
         x.strokeStyle = arc.color; x.globalAlpha = al; x.lineWidth = 2;
         x.beginPath(); x.moveTo(arc.x1, arc.y1);

@@ -57,7 +57,7 @@
 
     // ===== HEAVENLY (final, ultimate tier) =====
     heaven_judgment: { name:'Wrath of Heaven', fam:'Mythical', slot:'primary', rarity:'heavenly', price:80000, dmg:620, rpm:120, spd:0, spread:0, mag:36, reserve:600, reload:1.8, bullet:'goldlight', goldLightning:12, kb:160, recoil:6, range:1400, auto:true, perks:['HEAVENLY — divine lightning','Smites 12 at once','Erases entire hordes'], desc:'The judgment of the heavens. Call down a storm of holy lightning that scours the battlefield clean.' },
-    heaven_excalibur:{ name:'Excalibur',     fam:'Melee',   slot:'melee',   rarity:'heavenly', price:90000, dmg:680, range:86, swing:0.34, arc:2.0, kb:220, goldKill:true, perks:['HEAVENLY — the radiant blade','One sweeping stroke fells almost anything','Gilds the slain in gold'], desc:'The sword in the stone, reforged in light. A radiant arc that turns the dead to statues of gold.' },
+    heaven_excalibur:{ name:'Excalibur',     fam:'Melee',   slot:'melee',   rarity:'heavenly', price:90000, dmg:680, chargeMelee:true, chargeDmg:950, range:86, swing:0.34, arc:2.0, kb:220, goldKill:true, perks:['HEAVENLY — CHARGE then release','Unleashes a charge of holy energy that RAMS through every zombie in a line','Gilds the slain in gold'], desc:'The sword in the stone, reforged in light. HOLD to charge, release to send a goring wave of holy energy ramming through the horde — gilding all it strikes.' },
     heaven_gjallar:  { name:'Gjallarhorn',   fam:'Special', slot:'primary', rarity:'heavenly', price:95000, dmg:460, rpm:50, spd:560, spread:1, mag:3, reserve:24, reload:2.4, bullet:'rocket', aoe:175, fire:true, kb:240, recoil:9, range:840, auto:false, perks:['HEAVENLY — holy detonation','Colossal blast radius','Leaves sanctified fire'], desc:'A horn that fires shards of heaven — each shot a cataclysmic, sanctified explosion.' },
     // charge-based evaporating laser
     spec_evap:       { name:'Evaporator',     fam:'Special', slot:'primary', rarity:'legendary', price:7000, dmg:260, beam:true, charge:100, drain:34, recharge:22, range:560, kb:0, recoil:0, auto:true, perks:['Continuous evaporating beam','Drains a charge cell','Overheats if overused — then recharges'], desc:'A handheld particle laser. Hold to project a beam that vaporizes anything it touches — watch the charge or it overheats and must cool down.' },
@@ -163,6 +163,8 @@
     z_boss_dark:     { name:'OVERLORD · DARK', hp:3000, spd:46, dmg:50, r:30, cash:400,  score:1200, color:'#1a1024', boss:true, big:true, shockwave:true, blink:true },
     z_boss_light:    { name:'OVERLORD · LIGHT',hp:3000, spd:40, dmg:48, r:30, cash:400,  score:1200, color:'#e8e2d0', boss:true, big:true, summon:true, slash:true, light:true },
     z_purple_elite:  { name:'Purple Elite',    hp:260,  spd:62, dmg:28, r:13, cash:40,   score:60,   color:'#5a3a6a', tier:99, behavior:'seek', armored:true, purple:true },
+    z_boss_giant:    { name:'THE GOLDEN GIANT',hp:7200, spd:30, dmg:56, r:37, cash:1700, score:3400, color:'#e0a82a', boss:true, big:true, golden:true, slash:true, parry:true, laser:true },
+    z_golden_attacker:{ name:'Golden Attacker',hp:440,  spd:48, dmg:30, r:14, cash:80,   score:120,  color:'#e0b030', tier:99, behavior:'seek', shielded:true, goldImmune:true, golden:true },
   };
 
   // ---------- ENVIRONMENTS + LIGHTING ----------

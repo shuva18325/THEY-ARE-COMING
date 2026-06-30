@@ -18,7 +18,11 @@ tension meets twin-stick arcade energy — a richer, more customizable take on
 
 ## 📸 Screenshots
 
-| 🧒 New base character (the boy) | ⚡ Evaporator charge-laser vs Shadow Elite (W8) | 👑 The Overlord — phase 2: Light & Dark |
+| 🧑 Young hero (spiky ginger, no beard) | ⚔️ Excalibur charge → "ram" that gilds the horde | 🟡 THE GOLDEN GIANT (W10) — sword, parry, laser |
+|---|---|---|
+| ![hero](screenshots/44_boy_young.png) | ![ram](screenshots/46_excalibur_ram.png) | ![giant](screenshots/47_golden_giant.png) |
+
+| 🧒 Base character (the boy) | ⚡ Evaporator charge-laser vs Shadow Elite (W8) | 👑 The Overlord — phase 2: Light & Dark |
 |---|---|---|
 | ![boy](screenshots/40_boy_loadout.png) | ![beam](screenshots/41_evaporator_shadow.png) | ![phase2](screenshots/43_overlord_phase2.png) |
 

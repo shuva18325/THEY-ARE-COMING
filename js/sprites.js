@@ -373,12 +373,25 @@
         ctx.fillStyle = crys; ctx.fillRect(r * 0.5, -r * 1.45, 3, 2);
       }
     }
+    if (d.golden) { // blocky golden plating + glowing square face (+ great sword for the giant)
+      ctx.fillStyle = '#f2c44a'; ctx.fillRect(-r * 0.72, -r * 0.72, r * 1.44, r * 1.44);
+      ctx.fillStyle = '#ffe9a8'; ctx.fillRect(-r * 0.62, -r * 0.62, r * 1.24, 2);
+      ctx.fillStyle = '#caa030'; ctx.fillRect(-r * 0.72, r * 0.25, r * 1.44, r * 0.45);
+      ctx.fillStyle = '#9a7a20'; ctx.fillRect(-r * 0.1, -r * 0.72, 2, r * 1.44);
+      ctx.fillStyle = '#ff5a2a'; ctx.fillRect(hx - r * 0.1, -r * 0.28, r * 0.55, r * 0.55);
+      ctx.fillStyle = '#ffb060'; ctx.fillRect(hx + r * 0.05, -r * 0.12, r * 0.28, r * 0.28);
+      if (d.slash) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(r * 0.55, -r * 1.5, 2, r * 1.9); ctx.fillStyle = '#caa030'; ctx.fillRect(r * 0.5, -r * 1.5, 3, 3); ctx.fillStyle = '#fff7d8'; ctx.fillRect(r * 0.55, -r * 1.5, 1, r * 1.9); }
+    }
     if (d.shielded) { // big riot shield held in front (facing +x = toward player)
       ctx.fillStyle = '#23272c'; ctx.fillRect(r * 0.75, -r * 1.15, 3.5, r * 2.3);
       ctx.fillStyle = 'rgba(150,170,190,0.5)'; ctx.fillRect(r * 0.78, -r * 1.05, 2.4, r * 2.1);
       ctx.fillStyle = '#cfd6e0'; ctx.fillRect(r * 0.75, -r * 1.15, 2, 1);
       ctx.fillStyle = '#101316'; ctx.fillRect(r * 0.75, -2, 3.5, 4);       // viewport slit
       ctx.fillStyle = '#f2c14e'; ctx.fillRect(r * 0.82, -r * 0.4, 1, r * 0.8); // hazard stripe
+    }
+    if (z.parrying > 0) { // parry shimmer
+      ctx.strokeStyle = 'rgba(255,230,150,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r + 3, 0, T.TAU); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,230,150,0.15)'; ctx.beginPath(); ctx.arc(0, 0, r + 3, 0, T.TAU); ctx.fill();
     }
     ctx.restore();
   };
@@ -633,25 +646,29 @@
     }
     // neck
     P(-3, -13, 6, 4, shade(skin, -0.1));
-    // head (big-eyed boy)
+    // head (young, confident — ~19, no beard)
     P(-8, -27, 16, 18, OL); P(-7, -26, 14, 16, skin);
-    P(-7, -13, 14, 2, shade(skin, -0.2));
-    P(-5, -20, 4, 5, '#fff'); P(1, -20, 4, 5, '#fff');         // eye whites
-    P(-4, -19, 3, 4, '#2a1c14'); P(2, -19, 3, 4, '#2a1c14');   // irises
-    P(-4, -19, 1, 1, '#fff'); P(2, -19, 1, 1, '#fff');         // sparkle
-    P(-6, -21, 4, 1, OL); P(2, -21, 4, 1, OL);                 // brows
-    P(-1, -14, 2, 1, shade(skin, -0.2)); P(-2, -12, 4, 1, '#a85a50'); // nose + mouth
-    P(-7, -14, 2, 2, '#e88a8a'); P(5, -14, 2, 2, '#e88a8a');   // blush
+    P(-7, -26, 14, 2, shade(skin, 0.12));                       // bright young forehead
+    P(-5, -20, 4, 5, '#fff'); P(1, -20, 4, 5, '#fff');          // big eyes
+    P(-4, -19, 3, 4, '#3f7fc8'); P(2, -19, 3, 4, '#3f7fc8');    // blue irises
+    P(-4, -18, 2, 2, '#16263a'); P(2, -18, 2, 2, '#16263a');    // pupils
+    P(-4, -20, 1, 1, '#fff'); P(2, -20, 1, 1, '#fff');          // sparkle
+    P(-6, -22, 4, 1, shade(hair, -0.2)); P(2, -22, 4, 1, shade(hair, -0.2)); // brows
+    P(-1, -14, 2, 1, shade(skin, -0.12));                       // small nose
+    P(-2, -11, 4, 1, '#c2705e'); P(2, -11, 1, 1, '#a85a50');    // confident smirk
+    P(-7, -13, 2, 2, '#f2a0a0'); P(5, -13, 2, 2, '#f2a0a0');    // subtle blush
     // hair or helmet
     if (gear.helmetEquipped) {
       P(-8, -29, 16, 6, OL); P(-7, -28, 14, 5, helm); P(-7, -28, 14, 2, shade(helm, 0.2));
       P(-8, -24, 2, 4, shade(helm, -0.15)); P(6, -24, 2, 4, shade(helm, -0.15));
     } else {
-      P(-8, -29, 16, 8, hair); P(-8, -29, 16, 2, shade(hair, 0.22));
-      P(-9, -24, 3, 7, hair); P(6, -24, 3, 7, hair);
-      P(-6, -23, 12, 2, shade(hair, -0.1));               // fringe over forehead
-      P(-5, -31, 3, 2, hair); P(0, -32, 3, 2, hair); P(4, -31, 3, 2, hair); // tousled tufts
-      P(-8, -22, 2, 4, shade(hair, -0.22)); P(6, -22, 2, 4, shade(hair, -0.22));
+      // spiky ginger hair (like the reference)
+      P(-8, -29, 16, 7, hair); P(-8, -29, 16, 2, shade(hair, 0.25));
+      P(-9, -25, 3, 6, hair); P(6, -25, 3, 6, hair);
+      P(-6, -23, 12, 2, shade(hair, -0.08));                    // fringe
+      P(-7, -32, 3, 4, hair); P(-2, -33, 3, 5, hair); P(3, -33, 3, 4, hair); P(6, -31, 2, 3, hair); // upward spikes
+      P(-1, -32, 2, 3, shade(hair, 0.18));
+      P(-8, -23, 2, 3, shade(hair, -0.2)); P(6, -23, 2, 3, shade(hair, -0.2));
     }
     // ---- themed regalia ----
     const th = gear.theme;

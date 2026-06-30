@@ -23,11 +23,13 @@
       this.aoe = opt.aoe || w.aoe || 0;
       this.kb = (w.kb || 50);
       this.chain = opt.chain || 0;
+      this.gold = opt.gold || false;
+      this.width = opt.width || 0;
       this.dead = false;
       this.hitSet = new Set();
       this.trail = [];
-      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40', rocket: '#e8632a', lightning: '#bfeaff', fireball: '#ff8a2a', goldlight: '#ffe08a' })[this.type];
-      this.r = (this.type === 'grenade' || this.type === 'rocket' || this.type === 'fireball') ? 2.8 : ((this.type === 'rail' || this.type === 'lightning' || this.type === 'goldlight') ? 1.6 : 1.2);
+      this.color = ({ round: '#ffd24a', slug: '#ffcf6a', bolt: '#d8e0e8', flame: '#f2a23a', rail: '#9fe8ff', grenade: '#3a3d40', rocket: '#e8632a', lightning: '#bfeaff', fireball: '#ff8a2a', goldlight: '#ffe08a', excal: '#ffe9a8' })[this.type];
+      this.r = this.width || ((this.type === 'grenade' || this.type === 'rocket' || this.type === 'fireball') ? 2.8 : ((this.type === 'rail' || this.type === 'lightning' || this.type === 'goldlight') ? 1.6 : 1.2));
     }
     update(dt, G) {
       const px = this.x, py = this.y;
@@ -43,6 +45,7 @@
       }
       if (this.type === 'rocket' || this.type === 'fireball') { G.particles.fire(this.x, this.y, this.type === 'fireball' ? 2 : 1); if (this.type === 'rocket') G.particles.smoke(this.x, this.y, 1, 'rgba(80,75,68,0.5)'); }
       if ((this.type === 'lightning' || this.type === 'goldlight') && T.chance(0.5)) G.particles.spark(this.x, this.y, T.rand(0, T.TAU), 1, this.color);
+      if (this.type === 'excal') { if (T.chance(0.8)) G.particles.spark(this.x + T.rand(-this.r, this.r), this.y + T.rand(-this.r, this.r), T.rand(0, T.TAU), 2, '#ffe9a8'); G.particles.light(this.x, this.y, this.r * 2, 'rgba(255,220,120,0.5)', 0.06); }
       if (this.traveled > this.range) { this.dead = true; if (this.aoe) this.explode(G); return; }
       // arena bounds / props
       if (this.x < 0 || this.y < 0 || this.x > G.arena.w || this.y > G.arena.h) { this.dead = true; if (this.aoe) this.explode(G); return; }
@@ -73,7 +76,7 @@
     }
     hitZombie(z, G) {
       const ang = Math.atan2(this.vy, this.vx);
-      const res = z.takeDamage(this.dmg, ang, G, { ap: this.ap, fire: this.fire, crit: this.crit, kb: this.kb });
+      const res = z.takeDamage(this.dmg, ang, G, { ap: this.ap, fire: this.fire, crit: this.crit, kb: this.kb, gold: this.gold });
       this.hitSet.add(z.id);
       if (this.chain > 0) {
         let near = null, nd = 120 * 120;
@@ -119,6 +122,7 @@
       else if (this.type === 'lightning') { ctx.fillStyle = '#fff'; ctx.fillRect(-5, -0.8, 12, 1.6); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(-5, -1.7, 12, 0.9); ctx.fillRect(-5, 0.8, 12, 0.9); ctx.fillStyle = '#fff'; ctx.fillRect(3, -1.6, 5, 3.2); }
       else if (this.type === 'goldlight') { ctx.fillStyle = '#fff'; ctx.fillRect(-5, -0.8, 12, 1.6); ctx.fillStyle = '#ffe08a'; ctx.fillRect(-5, -1.7, 12, 0.9); ctx.fillRect(-5, 0.8, 12, 0.9); }
       else if (this.type === 'fireball') { ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, T.TAU); ctx.fill(); ctx.fillStyle = '#ff8a2a'; ctx.beginPath(); ctx.arc(0, 0, 2.1, 0, T.TAU); ctx.fill(); ctx.fillStyle = '#c83a1a'; ctx.fillRect(-1, -1, 2, 2); }
+      else if (this.type === 'excal') { ctx.fillStyle = 'rgba(255,233,168,0.4)'; ctx.beginPath(); ctx.arc(0, 0, this.r, 0, T.TAU); ctx.fill(); ctx.fillStyle = '#ffe9a8'; ctx.fillRect(-2.5, -this.r, 5, this.r * 2); ctx.fillStyle = '#fff'; ctx.fillRect(-1, -this.r * 0.7, this.r * 0.5, this.r * 1.4); }
       else { ctx.fillStyle = '#fff7c0'; ctx.fillRect(-2, -0.6, 4, 1.2); ctx.fillStyle = this.color; ctx.fillRect(-2, -0.6, 2, 1.2); }
       ctx.restore();
     }
@@ -146,6 +150,8 @@
     }
     takeDamage(amount, fromAng, G, opt) {
       opt = opt || {};
+      if (this.parrying > 0) { G.particles.spark(this.x + Math.cos(fromAng + Math.PI) * this.def.r, this.y + Math.sin(fromAng + Math.PI) * this.def.r, fromAng + Math.PI, 5, '#ffe9a8'); if (T.chance(0.12)) G.particles.floatText(this.x, this.y - this.def.r, 'PARRY', '#ffe08a'); T.Audio.spark(); return { deflected: true, dmg: 0 }; }
+      if (this.def.goldImmune && opt.gold) { G.particles.spark(this.x, this.y, fromAng + Math.PI, 5, '#fff7d8'); if (T.chance(0.2)) G.particles.floatText(this.x, this.y - this.def.r - 2, 'IMMUNE', '#ffe08a'); return { deflected: true, dmg: 0 }; }
       if (opt.gold) this._goldDeath = true;
       if (G.settings && G.settings.oneShot) amount = 999999;
       let dmg = amount, deflected = false;
@@ -212,6 +218,7 @@
     update(dt, G) {
       this.animPhase += dt * (4 + this.spd * 0.03);
       if (this.hurtFlash > 0) this.hurtFlash -= dt;
+      if (this.parrying > 0) this.parrying -= dt;
       // status
       let spdMul = 1;
       if (this.slowT > 0) { this.slowT -= dt; spdMul *= 0.45; }
@@ -297,9 +304,14 @@
           G.particles.light(this.x, this.y, 40, 'rgba(120,140,255,0.5)', 0.3);
         }
       }
+      if (d.parry) { // Golden Giant raises its sword and parries all attacks briefly
+        this.parryCd = (this.parryCd == null ? T.rand(3, 5) : this.parryCd) - dt;
+        if (this.parryCd <= 0 && (this.parrying || 0) <= 0) { this.parryCd = T.rand(5, 8); this.parrying = 1.3; G.particles.light(this.x, this.y, 44, 'rgba(255,220,120,0.6)', 0.4); }
+      }
       this.abilityCd = (this.abilityCd == null ? T.rand(3, 5) : this.abilityCd) - dt;
       if (this.abilityCd > 0) return;
       this.abilityCd = T.rand(3.5, 5.5);
+      if (d.laser && dToP < 520) { const la = T.angle(this.x, this.y, p.x, p.y); G.bossLaser(this.x + Math.cos(la) * this.def.r, this.y + Math.sin(la) * this.def.r, la, 540, d.dmg * 0.7); }
       if (d.shockwave && dToP < 320) {
         G.addShockwave(this.x, this.y, 175); G.particles.explosion(this.x, this.y, 70, false); G.particles.shakeBy(7);
         if (dToP < 180) { p.takeDamage(d.dmg * 0.6, G); const a2 = T.angle(this.x, this.y, p.x, p.y); p.kbx += Math.cos(a2) * 220; p.kby += Math.sin(a2) * 220; }
@@ -589,9 +601,20 @@
         G.beam = null;
       }
     }
+    releaseExcalibur(G, w) {
+      const pow = this.exCharge || 0;
+      const dmg = (w.chargeDmg || 950) * (0.45 + pow * 0.55) * (this.meleeMult || 1);
+      this.kbx += Math.cos(this.angle) * 300 * (0.5 + pow); this.kby += Math.sin(this.angle) * 300 * (0.5 + pow); // the "ram" dash
+      const mx = this.x + Math.cos(this.angle) * 14, my = this.y + Math.sin(this.angle) * 14;
+      G.bullets.push(new Bullet(mx, my, this.angle, { spd: 720, dmg, bullet: 'excal', range: 640, kb: 240 }, { owner: 'player', pierce: 9999, dmg, gold: true, ap: true, width: 16 + pow * 16 }));
+      G.particles.muzzle(mx, my, this.angle, 1.6); G.particles.shakeBy(5 + pow * 4);
+      G.meleeSlash = { x: this.x, y: this.y, a: this.angle, arc: w.arc, range: w.range, life: 0.16, max: 0.16, gold: true };
+      T.Audio.shot('Sniper'); T.Audio.melee();
+    }
     doMelee(G) {
       if (this.meleeCd > 0) return;
       const id = this.eq.melee; if (!id) return; const w = T.WEAPONS[id];
+      if (w.chargeMelee) return; // handled by charge/release in update()
       this.meleeCd = w.swing; this.meleeAnim = 1; T.Audio.melee();
       if (w.lunge && Math.hypot(this.kbx, this.kby) < 140) { this.kbx += Math.cos(this.angle) * 320; this.kby += Math.sin(this.angle) * 320; G.particles.shakeBy(3); G.particles.light(this.x, this.y, 36, 'rgba(255,210,90,0.5)', 0.18); }
       let hit = false;
@@ -688,6 +711,18 @@
       const cwf = this.curWeapon();
       if (cwf && cwf.beam) this.updateBeam(G, cwf, dt);
       else if (T.Input.firing) this.tryFire(G);
+      // Excalibur charge melee: hold right-click to charge, release to ram
+      const mw = T.WEAPONS[this.eq.melee];
+      if (mw && mw.chargeMelee) {
+        if (T.Input.stabbing) {
+          this.exCharge = Math.min(1, (this.exCharge || 0) + dt); this.charging = true;
+          G.particles.light(this.x, this.y, 16 + this.exCharge * 32, 'rgba(255,220,120,' + (0.25 + this.exCharge * 0.45) + ')', 0.08);
+          if (T.chance(0.5)) G.particles.spark(this.x + T.rand(-7, 7), this.y + T.rand(-7, 7), -Math.PI / 2, 1, '#ffe9a8');
+        } else {
+          if (this.charging && (this.exCharge || 0) > 0.12) this.releaseExcalibur(G, mw);
+          this.charging = false; this.exCharge = 0;
+        }
+      } else this.charging = false;
       // reload finish
       if (this.reloading) { this.reloadT -= dt; if (this.reloadT <= 0) this.finishReload(); }
       // auto-reload when empty mag and not firing
@@ -706,6 +741,11 @@
       T.Sprites.drawPlayer(ctx, this);
       ctx.restore();
       if (this.invuln > 0 && Math.floor(this.invuln * 20) % 2 === 0) { ctx.globalAlpha = 0.3; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r + 1, 0, T.TAU); ctx.fill(); ctx.globalAlpha = 1; }
+      if (this.charging) {
+        ctx.strokeStyle = 'rgba(255,220,120,0.95)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(this.x, this.y, 12, -Math.PI / 2, -Math.PI / 2 + T.TAU * (this.exCharge || 0)); ctx.stroke();
+        if ((this.exCharge || 0) >= 1) { ctx.fillStyle = 'rgba(255,240,180,0.28)'; ctx.beginPath(); ctx.arc(this.x, this.y, 13, 0, T.TAU); ctx.fill(); }
+      }
     }
   }
   T.Player = Player;
