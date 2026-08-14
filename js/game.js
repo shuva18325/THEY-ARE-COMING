@@ -20,7 +20,7 @@
       this.zombies = []; this.bullets = []; this.traps = []; this.turrets = [];
       this.throwables = []; this.hazards = []; this.props = []; this.pets = []; this.fxArcs = []; this.shockwaves = [];
       this.beam = null;
-      this.damageFlash = 0; this.meleeSlash = null;
+      this.damageFlash = 0; this.relicFlash = 0; this.meleeSlash = null;
       this.settings = { cheats: false, god: false, infAmmo: false, oneShot: false, startCash: 900 };
       this.ui = new T.UI(this);
       T.Input.init(this.canvas);
@@ -63,7 +63,7 @@
       T.Audio.coin(); this.ui.renderHub();
     }
     addArc(x1, y1, x2, y2, color) { this.fxArcs.push({ x1, y1, x2, y2, color: color || '#bfeaff', life: 0.14, max: 0.14 }); }
-    addShockwave(x, y, max) { this.shockwaves.push({ x, y, r: 12, max, life: 0.5, maxLife: 0.5 }); }
+    addShockwave(x, y, max, color) { this.shockwaves.push({ x, y, r: 12, max, life: 0.5, maxLife: 0.5, color: color || 'rgba(200,180,255,0.85)' }); }
     fireBeam(p, w, dt) {
       const range = w.range;
       const x1 = p.x + Math.cos(p.angle) * 12, y1 = p.y + Math.sin(p.angle) * 12;
@@ -83,7 +83,7 @@
     // ---------- derived stats ----------
     computeStats() {
       const eq = this.state.equipped;
-      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1, meleeMult: 1, shield: 0 };
+      const s = { maxHp: 100, armor: 0, speed: 175, stamina: 100, reloadMul: 1, crit: 0.03, trapSlots: 1, beltSlots: 2, ammoMul: 1, meleeMult: 1, shield: 0, dmgMult: 1, transformed: false };
       ['helmet', 'chest', 'legs', 'boots', 'gloves', 'backpack'].forEach(slot => {
         const id = eq[slot]; if (!id) return; const a = T.ARMOR[id]; if (!a) return;
         if (a.armor) s.armor += a.armor;
@@ -98,6 +98,17 @@
         if (slot === 'backpack') { s.trapSlots = a.trapSlots || 1; s.beltSlots = a.beltSlots || 2; }
         if (a.beltSlots && slot !== 'backpack') s.beltSlots += a.beltSlots; // cargo pants bonus
       });
+      // relic transformation: holding a transform weapon awakens the four-armed god form
+      const pw = T.WEAPONS[eq.primary], sw = T.WEAPONS[eq.secondary];
+      if ((pw && pw.transform) || (sw && sw.transform)) {
+        s.transformed = true;
+        s.maxHp += 250;            // godlike vigor
+        s.speed *= 1.28;           // swift
+        s.dmgMult *= 1.7;          // empowered strikes
+        s.crit += 0.25;            // divine precision
+        s.meleeMult += 1.0;
+        s.shield = (s.shield || 0) + 200;
+      }
       s.speed = Math.round(s.speed);
       return s;
     }
@@ -240,6 +251,7 @@
     }
     bossForWave(N) {
       if (N % 15 === 0) return 'z_boss_overlord';                          // 15,30 — final boss (2 phases)
+      if (N === 12 || (N > 12 && (N - 12) % 15 === 0)) return 'z_boss_void';// 12,27 — THE VOID HERALD
       if (N === 8 || (N > 8 && (N - 8) % 15 === 0)) return 'z_boss_shadow';// 8,23 — Shadow Elite
       if (N % 20 === 0) return 'z_boss_mother';                            // 20,40
       if (N % 10 === 0) return 'z_boss_giant';                             // 10,50 — THE GOLDEN GIANT
@@ -268,6 +280,7 @@
       add('z_spitter', 2); add('z_screamer', 1); add('z_bloater', 2); add('z_armored', 2);
       add('z_brute', 1); add('z_stalker', this.env && this.env.light === 'night' ? 3 : 1);
       add('z_rioter', N >= 8 ? 2 : 1);
+      add('z_spider', 3); add('z_flesh', 2); add('z_abom', N >= 10 ? 2 : 1);
       return pool.length ? T.pick(pool) : 'z_walker';
     }
 
@@ -359,6 +372,7 @@
 
       if (this.meleeSlash) { this.meleeSlash.life -= dt; if (this.meleeSlash.life <= 0) this.meleeSlash = null; }
       if (this.damageFlash > 0) this.damageFlash -= dt;
+      if (this.relicFlash > 0) this.relicFlash -= dt;
 
       // cull
       this.zombies = this.zombies.filter(z => !z.dead);
@@ -458,7 +472,7 @@
       for (const b of this.bullets) b.draw(x);
       this.drawArcs(x);
       // shockwave rings (boss attacks)
-      for (const s of this.shockwaves) { const a = T.clamp(s.life / s.maxLife, 0, 1); x.globalAlpha = a; x.strokeStyle = 'rgba(200,180,255,0.85)'; x.lineWidth = 3; x.beginPath(); x.arc(s.x, s.y, s.r, 0, T.TAU); x.stroke(); x.globalAlpha = 1; }
+      for (const s of this.shockwaves) { const a = T.clamp(s.life / s.maxLife, 0, 1); x.globalAlpha = a; x.strokeStyle = s.color || 'rgba(200,180,255,0.85)'; x.lineWidth = 3; x.beginPath(); x.arc(s.x, s.y, s.r, 0, T.TAU); x.stroke(); x.globalAlpha = 1; }
       // evaporator beam
       if (this.beam) {
         x.globalAlpha = 0.4; x.strokeStyle = 'rgba(120,200,255,0.8)'; x.lineWidth = 7;
@@ -480,6 +494,7 @@
       x.globalCompositeOperation = 'lighter';
       this.lightBlob(x, this.player.x, this.player.y, 155, 'rgba(130,130,95,' + (L.dark > 0 ? 0.55 : 0.2) + ')');
       { const cwl = this.player.curWeapon(); if (cwl && cwl.rarity === 'mythical') this.lightBlob(x, this.player.x, this.player.y, 64, 'rgba(255,210,90,0.4)'); }
+      if (this.player.stats && this.player.stats.transformed) this.lightBlob(x, this.player.x, this.player.y, 78 + 8 * Math.sin(performance.now() / 120), 'rgba(150,210,255,0.5)');
       // muzzle/flash light when firing handled by particle lights
       for (const pr of this.props) if (pr.kind === 'fire') this.lightBlob(x, pr.x, pr.y, 50, 'rgba(230,120,40,0.6)');
       this.particles.drawLights(x);
@@ -496,6 +511,8 @@
 
       x.restore();
 
+      // relic lightning flash (screen)
+      if (this.relicFlash > 0) { x.fillStyle = 'rgba(200,230,255,' + (this.relicFlash * 1.6) + ')'; x.fillRect(0, 0, VW, VH); }
       // damage flash (screen)
       if (this.damageFlash > 0) { x.fillStyle = 'rgba(180,20,20,' + (this.damageFlash * 0.6) + ')'; x.fillRect(0, 0, VW, VH); }
       // low-hp pulse

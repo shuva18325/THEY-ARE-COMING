@@ -57,6 +57,7 @@
 
     // ===== HEAVENLY (final, ultimate tier) =====
     heaven_judgment: { name:'Wrath of Heaven', fam:'Mythical', slot:'primary', rarity:'heavenly', price:80000, dmg:620, rpm:120, spd:0, spread:0, mag:36, reserve:600, reload:1.8, bullet:'goldlight', goldLightning:12, kb:160, recoil:6, range:1400, auto:true, perks:['HEAVENLY — divine lightning','Smites 12 at once','Erases entire hordes'], desc:'The judgment of the heavens. Call down a storm of holy lightning that scours the battlefield clean.' },
+    relic_avatar:    { name:'The Godshaker',  fam:'Mythical', slot:'primary', rarity:'heavenly', price:150000, relic:true, transform:true, dmg:520, rpm:100, range:1300, auto:true, perks:['TRANSFORMS you — grows FOUR arms & empowers you (+HP, +speed, +damage, +crit)','SHAKE (fire) to call a lightning storm that annihilates the horde'], desc:'An ancient relic of a four-armed god. Wield it to TRANSFORM — four arms, godlike vigor — and shake it to rain lightning that erases whole hordes.' },
     heaven_excalibur:{ name:'Excalibur',     fam:'Melee',   slot:'melee',   rarity:'heavenly', price:90000, dmg:680, chargeMelee:true, chargeDmg:950, range:86, swing:0.34, arc:2.0, kb:220, goldKill:true, perks:['HEAVENLY — CHARGE then release','Unleashes a charge of holy energy that RAMS through every zombie in a line','Gilds the slain in gold'], desc:'The sword in the stone, reforged in light. HOLD to charge, release to send a goring wave of holy energy ramming through the horde — gilding all it strikes.' },
     heaven_gjallar:  { name:'Gjallarhorn',   fam:'Special', slot:'primary', rarity:'heavenly', price:95000, dmg:460, rpm:50, spd:560, spread:1, mag:3, reserve:24, reload:2.4, bullet:'rocket', aoe:175, fire:true, kb:240, recoil:9, range:840, auto:false, perks:['HEAVENLY — holy detonation','Colossal blast radius','Leaves sanctified fire'], desc:'A horn that fires shards of heaven — each shot a cataclysmic, sanctified explosion.' },
     // charge-based evaporating laser
@@ -155,6 +156,10 @@
     z_brute:   { name:'Brute',       hp:440, spd:32,  dmg:30, r:20, cash:45, score:60, color:'#4a5a3a', tier:5, behavior:'seek', big:true, kb:0.3 },
     z_stalker: { name:'Night Stalker',hp:96, spd:114, dmg:22, r:10, cash:35, score:50, color:'#3a3a4a', tier:6, behavior:'seek', night:true, alpha:0.55 },
     z_rioter:  { name:'Riot Brute',   hp:340, spd:46, dmg:28, r:13, cash:45, score:60, color:'#46505a', tier:6, behavior:'seek', shielded:true },
+    // HORRORS
+    z_spider:   { name:'Crawling Horror', hp:70,  spd:132, dmg:16, r:11, cash:22, score:34, color:'#3a2438', tier:4, behavior:'lunge', spider:true },
+    z_flesh:    { name:'Flesh Mound',     hp:300, spd:34,  dmg:26, r:17, cash:40, score:55, color:'#8a3a3a', tier:5, behavior:'seek', flesh:true, big:true, kb:0.4 },
+    z_abom:     { name:'Abomination',     hp:520, spd:44,  dmg:34, r:22, cash:70, score:110, color:'#5a2a3a', tier:7, behavior:'seek', big:true, abom:true, burst:true, kb:0.5 },
     // ELITES / BOSSES
     z_boss_vanguard: { name:'VANGUARD ELITE',  hp:2600, spd:38, dmg:44, r:32, cash:500,  score:900,  color:'#6a6a5a', boss:true, big:true, slam:true, armored:true },
     z_boss_mother:   { name:'THE MOTHER',      hp:3200, spd:24, dmg:34, r:32, cash:600,  score:1000, color:'#7a5a6a', boss:true, big:true, births:true },
@@ -165,6 +170,7 @@
     z_purple_elite:  { name:'Purple Elite',    hp:260,  spd:62, dmg:28, r:13, cash:40,   score:60,   color:'#5a3a6a', tier:99, behavior:'seek', armored:true, purple:true },
     z_boss_giant:    { name:'THE GOLDEN GIANT',hp:7200, spd:30, dmg:56, r:37, cash:1700, score:3400, color:'#e0a82a', boss:true, big:true, golden:true, slash:true, parry:true, laser:true },
     z_golden_attacker:{ name:'Golden Attacker',hp:440,  spd:48, dmg:30, r:14, cash:80,   score:120,  color:'#e0b030', tier:99, behavior:'seek', shielded:true, goldImmune:true, golden:true },
+    z_boss_void:     { name:'THE VOID HERALD', hp:8200, spd:42, dmg:60, r:36, cash:2000, score:4200, color:'#0d0716', boss:true, big:true, void:true, blackflash:true, charge:true, lightning:true, blink:true, alpha:0.94 },
   };
 
   // ---------- ENVIRONMENTS + LIGHTING ----------

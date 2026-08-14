@@ -27,7 +27,7 @@
     const lenMap = { Pistol:9, SMG:13, Rifle:18, Shotgun:15, Sniper:24, LMG:19, Special:16, Melee:14 };
     let L = lenMap[fam] || 14;
     if (fam === 'Melee') L = { melee_knife:10, melee_spear:24, melee_sledge:17, melee_katana:19, melee_chainsaw:20, melee_king_staff:23, melee_mjolnir:18, melee_blaze:20, heaven_excalibur:21 }[id] || 14;
-    if (fam === 'Mythical') L = { myth_tengeshima:24, myth_aztec_staff:20, myth_king_orb:18 }[id] || 20;
+    if (fam === 'Mythical') L = { myth_tengeshima:24, myth_aztec_staff:20, myth_king_orb:18, relic_avatar:22 }[id] || 20;
     const H = 9, axis = 4;
     const { c, x } = cv(L + 2, H + 2);
     const ox = 1, oy = 1;
@@ -134,6 +134,13 @@
         P(1, axis, L - 6, 1, '#7a5a2a'); P(1, axis - 1, 5, 1, '#a07a3a');
         P(L - 6, axis - 3, 5, 7, '#caa84a'); P(L - 6, axis - 3, 5, 1, '#ffe08a');
         P(L - 5, axis - 1, 3, 3, '#c83a1a'); P(L - 4, axis, 1, 1, '#f2c14e'); grip(3, WOOD);
+      } else if (id === 'relic_avatar') {          // THE GODSHAKER — twin-caged golden relic
+        P(6, axis, L - 12, 2, '#7a1f1f'); P(6, axis, L - 12, 1, '#a83a2a');           // red-wrapped grip
+        for (let i = 7; i < L - 6; i += 2) P(i, axis, 1, 1, '#e0b030');               // gold binding bands
+        P(2, axis - 3, 5, 8, '#f2c14e'); P(2, axis - 3, 5, 1, '#ffe9a8'); P(3, axis - 1, 3, 3, '#fff7d8'); // near cage-orb
+        P(L - 6, axis - 3, 5, 8, '#f2c14e'); P(L - 6, axis - 3, 5, 1, '#ffe9a8'); P(L - 5, axis - 1, 3, 3, '#9fe8ff'); // far cage-orb (charged)
+        P(1, axis - 4, 1, 10, '#caa030'); P(L - 1, axis - 4, 1, 10, '#caa030');       // cage bars
+        P(L - 1, axis - 2, 2, 2, '#cfe6ff');                                          // blade/spark tip
       } else {                                     // king orb scepter
         P(2, axis, L - 7, 1, '#caa84a'); P(2, axis - 1, 5, 1, '#ffe08a');
         P(L - 7, axis - 3, 6, 6, '#f2c14e'); P(L - 6, axis - 3, 4, 2, '#ffe9a8');
@@ -241,6 +248,19 @@
     ctx.strokeStyle = g.gloves; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(6, -3); ctx.lineTo(9, -2.4); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(6, 3); ctx.lineTo(9, 2.4); ctx.stroke();
+
+    // RELIC transformation — the four-armed god form: two extra arms + divine aura
+    if (p.stats && p.stats.transformed) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(150,210,255,0.20)'; ctx.beginPath(); ctx.arc(0, 0, 12, 0, T.TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = shade(g.chest, -0.08); ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(5, -8 + swing * 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 3); ctx.lineTo(5, 8 - swing * 0.5); ctx.stroke();
+      ctx.strokeStyle = g.gloves; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(4, -7 + swing * 0.5); ctx.lineTo(7.5, -9 + swing * 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(4, 7 - swing * 0.5); ctx.lineTo(7.5, 9 - swing * 0.5); ctx.stroke();
+    }
 
     // gun
     if (gunId) {
@@ -381,6 +401,50 @@
       ctx.fillStyle = '#ff5a2a'; ctx.fillRect(hx - r * 0.1, -r * 0.28, r * 0.55, r * 0.55);
       ctx.fillStyle = '#ffb060'; ctx.fillRect(hx + r * 0.05, -r * 0.12, r * 0.28, r * 0.28);
       if (d.slash) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(r * 0.55, -r * 1.5, 2, r * 1.9); ctx.fillStyle = '#caa030'; ctx.fillRect(r * 0.5, -r * 1.5, 3, 3); ctx.fillStyle = '#fff7d8'; ctx.fillRect(r * 0.55, -r * 1.5, 1, r * 1.9); }
+    }
+    if (d.spider) { // CRAWLING HORROR — radiating jointed legs + cluster of red eyes
+      ctx.strokeStyle = OL; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      const legs = [-2.4, -1.6, -0.8, 0.8, 1.6, 2.4];
+      for (const a0 of legs) {
+        const a = a0 + Math.sin(phase * 2 + a0) * 0.2;
+        const bx = Math.cos(a) * r * 0.5, by = Math.sin(a) * r * 0.5;
+        const mx = Math.cos(a) * (r + 3), my = Math.sin(a) * (r + 3) - 2;
+        const tx = Math.cos(a) * (r + 9), ty = Math.sin(a) * (r + 9);
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(mx, my); ctx.lineTo(tx, ty); ctx.stroke();
+      }
+      ctx.fillStyle = '#ff3a3a';
+      ctx.fillRect(hx + r * 0.2, -r * 0.34, 1.3, 1.3); ctx.fillRect(hx + r * 0.46, -r * 0.28, 1.3, 1.3);
+      ctx.fillRect(hx + r * 0.2, r * 0.2, 1.3, 1.3); ctx.fillRect(hx + r * 0.46, r * 0.14, 1.3, 1.3);
+      ctx.fillRect(hx + r * 0.62, -r * 0.05, 1.3, 1.3);
+    }
+    if (d.flesh) { // FLESH MOUND — pulsating lumps of raw meat + scattered eyes
+      roundDot(ctx, -r * 0.5, -r * 0.35, r * 0.5, '#a85a5a');
+      roundDot(ctx, -r * 0.4, r * 0.45, r * 0.55, '#8a3a3a');
+      roundDot(ctx, r * 0.12, -r * 0.55, r * 0.4, '#b86a6a');
+      ctx.fillStyle = '#5a1a1a'; ctx.fillRect(-r * 0.2, 0, r * 0.5, 2); ctx.fillRect(-r * 0.4, -r * 0.15, 2, r * 0.5);
+      ctx.fillStyle = '#f2e28a';
+      ctx.fillRect(-r * 0.3, -r * 0.3, 1.4, 1.4); ctx.fillRect(r * 0.05, r * 0.25, 1.4, 1.4); ctx.fillRect(-r * 0.55, r * 0.1, 1.4, 1.4);
+      ctx.fillStyle = '#7a1414'; ctx.fillRect(-r * 0.62, -r * 0.1, 2, r * 0.55);
+    }
+    if (d.abom) { // ABOMINATION — a hulking asymmetric mass, many eyes, gaping maw
+      roundDot(ctx, -r * 0.55, -r * 0.5, r * 0.6, shade(base, 0.1));
+      roundDot(ctx, -r * 0.5, r * 0.6, r * 0.62, shade(base, -0.15));
+      roundDot(ctx, r * 0.2, -r * 0.6, r * 0.3, '#c8d84a'); // pustule
+      ctx.fillStyle = '#f2e28a';
+      ctx.fillRect(hx + r * 0.1, -r * 0.4, 1.6, 1.6); ctx.fillRect(hx + r * 0.4, -r * 0.08, 1.6, 1.6); ctx.fillRect(hx + r * 0.1, r * 0.28, 1.6, 1.6);
+      ctx.fillStyle = '#2a0808'; ctx.fillRect(hx + r * 0.2, -r * 0.12, r * 0.5, r * 0.28);
+      ctx.fillStyle = '#ff7a3a'; ctx.fillRect(hx + r * 0.3, -r * 0.05, r * 0.28, 1);
+    }
+    if (d.void) { // THE VOID HERALD — near-black plating cracked with purple void-light
+      ctx.fillStyle = '#14091f'; ctx.fillRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5);
+      roundDot(ctx, -r * 0.4, -r * 0.4, r * 0.5, '#2a1440'); roundDot(ctx, -r * 0.4, r * 0.4, r * 0.5, '#2a1440');
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(150,60,220,0.55)'; ctx.fillRect(-r * 0.5, -r * 0.08, r, 2); ctx.fillRect(-r * 0.08, -r * 0.5, 2, r);
+      ctx.fillStyle = 'rgba(120,40,200,0.28)'; ctx.beginPath(); ctx.arc(0, 0, r * 1.15, 0, T.TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#e0b0ff'; ctx.fillRect(hx + r * 0.2, -r * 0.3, 2.2, 2.2); ctx.fillRect(hx + r * 0.2, r * 0.1, 2.2, 2.2);
+      ctx.fillStyle = '#0d0716'; ctx.fillRect(hx - r * 0.1, -r * 1.0, 2, r * 0.45); ctx.fillRect(hx + r * 0.3, -r * 0.95, 2, r * 0.4); ctx.fillRect(hx + r * 0.6, -r * 0.9, 2, r * 0.35);
+      ctx.fillStyle = '#b06ad8'; ctx.fillRect(r * 0.55, -r * 1.5, 2, r * 1.95); ctx.fillStyle = '#e0b0ff'; ctx.fillRect(r * 0.5, -r * 1.5, 4, 3);
     }
     if (d.shielded) { // big riot shield held in front (facing +x = toward player)
       ctx.fillStyle = '#23272c'; ctx.fillRect(r * 0.75, -r * 1.15, 3.5, r * 2.3);

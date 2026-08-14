@@ -496,7 +496,7 @@
       let ids = [];
       if (['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Sniper', 'LMG', 'Melee', 'Special'].includes(cat)) {
         ids = Object.keys(T.WEAPONS).filter(id => T.WEAPONS[id].fam === cat);
-      } else if (cat === '★ Mythical') ids = [...Object.keys(T.WEAPONS), ...Object.keys(T.ARMOR)].filter(id => (T.lookup(id).rarity === 'mythical'));
+      } else if (cat === '★ Mythical') ids = [...Object.keys(T.WEAPONS), ...Object.keys(T.ARMOR)].filter(id => { const r = T.lookup(id).rarity; return r === 'mythical' || r === 'heavenly'; });
       else if (cat === 'Pets') ids = Object.keys(T.PETS);
       else if (cat === 'Companions') ids = T.COMPANIONS ? Object.keys(T.COMPANIONS) : [];
       else if (cat === 'Traps') ids = Object.keys(T.TRAPS);
@@ -654,7 +654,8 @@
       $('#wpnName').textContent = w ? w.name : '—';
       const am = p.ammo[wid];
       const ammoEl = $('#ammo');
-      if (w && w.beam) { ammoEl.textContent = p.overheat ? 'OVERHEAT' : ('⚡ ' + Math.round(p.charge || 0) + '%'); ammoEl.classList.toggle('low', p.overheat || (p.charge || 0) < 25); }
+      if (w && w.relic) { ammoEl.textContent = '⚡ SHAKE ∞'; ammoEl.classList.remove('low'); }
+      else if (w && w.beam) { ammoEl.textContent = p.overheat ? 'OVERHEAT' : ('⚡ ' + Math.round(p.charge || 0) + '%'); ammoEl.classList.toggle('low', p.overheat || (p.charge || 0) < 25); }
       else if (p.reloading) { ammoEl.textContent = 'RELOADING'; ammoEl.classList.add('low'); }
       else if (am) { ammoEl.textContent = am.mag + ' / ' + am.reserve; ammoEl.classList.toggle('low', am.mag <= w._mag * 0.25); }
       // gun icon

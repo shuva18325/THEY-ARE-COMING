@@ -310,7 +310,29 @@
       }
       this.abilityCd = (this.abilityCd == null ? T.rand(3, 5) : this.abilityCd) - dt;
       if (this.abilityCd > 0) return;
-      this.abilityCd = T.rand(3.5, 5.5);
+      this.abilityCd = d.void ? T.rand(2.4, 3.8) : T.rand(3.5, 5.5);
+      // ===== THE VOID HERALD — black-flash / charge / lightning =====
+      if (d.void) {
+        const roll = T.randInt(0, 2);
+        if (roll === 0) { // BLACK FLASH — a strong dark shockwave that knocks you far
+          G.addShockwave(this.x, this.y, 250, 'rgba(18,6,32,0.95)');
+          G.addShockwave(this.x, this.y, 185, 'rgba(140,50,220,0.75)');
+          G.particles.explosion(this.x, this.y, 96, false); G.particles.smoke(this.x, this.y, 12, 'rgba(20,8,34,0.7)'); G.particles.shakeBy(12);
+          G.damageFlash = Math.max(G.damageFlash, 0.4);
+          if (dToP < 250) { p.takeDamage(d.dmg * 0.85, G); const a2 = T.angle(this.x, this.y, p.x, p.y); p.kbx += Math.cos(a2) * 540; p.kby += Math.sin(a2) * 540; }
+        } else if (roll === 1 && dToP > 110) { // VOID CHARGE — a hurtling dash
+          const step = Math.min(dToP - 40, 320);
+          this.x = T.clamp(this.x + Math.cos(ang) * step, 16, G.arena.w - 16);
+          this.y = T.clamp(this.y + Math.sin(ang) * step, 16, G.arena.h - 16);
+          G.particles.smoke(this.x, this.y, 10, 'rgba(20,10,30,0.7)'); G.particles.light(this.x, this.y, 46, 'rgba(150,60,220,0.5)', 0.3); G.particles.shakeBy(7);
+          const nd = T.dist(this.x, this.y, p.x, p.y);
+          if (nd < 74) { p.takeDamage(d.dmg * 0.9, G); const a2 = T.angle(this.x, this.y, p.x, p.y); p.kbx += Math.cos(a2) * 400; p.kby += Math.sin(a2) * 400; }
+        } else { // VOID LIGHTNING — bolts rain around the player
+          for (let i = 0; i < 6; i++) { const tx = p.x + T.rand(-70, 70), ty = p.y + T.rand(-70, 70); G.addArc(tx, ty - 104, tx, ty, '#b98cff'); G.particles.spark(tx, ty, 0, 8, '#b98cff'); if (T.dist(p.x, p.y, tx, ty) < 42) p.takeDamage(d.dmg * 0.45, G); }
+          G.particles.light(p.x, p.y, 40, 'rgba(180,140,255,0.5)', 0.2); G.particles.shakeBy(6);
+        }
+        return;
+      }
       if (d.laser && dToP < 520) { const la = T.angle(this.x, this.y, p.x, p.y); G.bossLaser(this.x + Math.cos(la) * this.def.r, this.y + Math.sin(la) * this.def.r, la, 540, d.dmg * 0.7); }
       if (d.shockwave && dToP < 320) {
         G.addShockwave(this.x, this.y, 175); G.particles.explosion(this.x, this.y, 70, false); G.particles.shakeBy(7);
@@ -543,6 +565,8 @@
       if (this.reloading || this.fireCd > 0) return;
       const id = this.curWeaponId(); const w = T.WEAPONS[id]; if (!w) return;
       const am = this.ammo[id];
+      // RELIC — The Godshaker: shake it (fire) to call a lightning storm. Never runs dry.
+      if (w.relic) { this.fireCd = 60 / w.rpm; this.fireRelicStorm(G, w); this.recoilKick = 2; return; }
       const inf = G.settings && G.settings.infAmmo;
       if (!inf && am.mag <= 0) { if (!this._dry) { T.Audio.dry(); this._dry = true; } this.reload(G); return; }
       this._dry = false;
@@ -561,7 +585,7 @@
       for (let i = 0; i < pellets; i++) {
         const sp = T.rand(-spreadRad, spreadRad) / 2 + T.rand(-spreadRad, spreadRad) / 2;
         const crit = T.chance(this.crit + (w.crit ? 0.0 : 0)) || (w.crit && T.chance(0.5));
-        const dmg = w.dmg * (crit ? (w.crit || 2) : 1) * w._dmgMul;
+        const dmg = w.dmg * (crit ? (w.crit || 2) : 1) * w._dmgMul * ((this.stats && this.stats.dmgMult) || 1);
         G.bullets.push(new Bullet(mx, my, this.angle, w, { spread: sp, dmg, pierce: (w.pierce || 0) + (w._pierce || 0), range: w.range * w._rangeMul, spd: w.spd * w._spdMul, ap, fire, crit, chain: w.chain || 0, owner: 'player' }));
       }
       G.particles.muzzle(mx, my, this.angle, w.fam === 'Shotgun' || w.fam === 'LMG' ? 1.4 : 1);
@@ -583,11 +607,31 @@
       if (!cands.length) { G.addArc(mx, my, mx + Math.cos(this.angle) * range, my + Math.sin(this.angle) * range, '#ffe08a'); }
       for (const z of cands) {
         G.addArc(this.x, this.y - 4, z.x, z.y, '#ffe08a');
-        z.takeDamage(w.dmg * w._dmgMul, T.angle(this.x, this.y, z.x, z.y), G, { ap: true, crit: T.chance(0.35) });
+        z.takeDamage(w.dmg * w._dmgMul * ((this.stats && this.stats.dmgMult) || 1), T.angle(this.x, this.y, z.x, z.y), G, { ap: true, crit: T.chance(0.35) });
         G.particles.spark(z.x, z.y, 0, 8, '#ffe08a'); G.particles.light(z.x, z.y, 28, 'rgba(255,220,120,0.7)', 0.16);
       }
       G.particles.shakeBy(5);
       if (!w._silent) T.Audio.explosion();
+    }
+    // RELIC storm — shake the Godshaker and lightning rains across the horde
+    fireRelicStorm(G, w) {
+      const dm = (this.stats && this.stats.dmgMult) || 1;
+      const live = G.zombies.filter(z => !z.dead)
+        .sort((a, b) => T.dist2(this.x, this.y, a.x, a.y) - T.dist2(this.x, this.y, b.x, b.y));
+      let hit = 0;
+      for (const z of live) {
+        if (hit >= 16) break;
+        G.addArc(z.x, z.y - 96, z.x, z.y, '#cfe6ff');
+        G.addArc(z.x - 7, z.y - 62, z.x + 5, z.y, '#9fe8ff');
+        z.takeDamage(w.dmg * dm * T.rand(0.9, 1.35), T.angle(this.x, this.y, z.x, z.y), G, { ap: true, crit: T.chance(0.4), kb: 70 });
+        G.particles.spark(z.x, z.y, 0, 10, '#cfe6ff');
+        G.particles.light(z.x, z.y, 34, 'rgba(180,220,255,0.85)', 0.18);
+        hit++;
+      }
+      // atmospheric sky bolts around the god even when the field is thin
+      for (let i = 0; i < 4; i++) { const rx = this.x + T.rand(-230, 230), ry = this.y + T.rand(-150, 150); G.addArc(rx, ry - 96, rx, ry, 'rgba(180,220,255,0.55)'); }
+      G.particles.shakeBy(7); G.relicFlash = 0.18;
+      T.Audio.explosion();
     }
     updateBeam(G, w, dt) {
       if (this.charge == null) this.charge = w.charge;
@@ -625,7 +669,7 @@
         if (d < rng + z.def.r) {
           const a = T.angle(this.x, this.y, z.x, z.y);
           if (Math.abs(T.angleDiff(this.angle, a)) < w.arc) {
-            z.takeDamage(w.dmg * (this.meleeMult || 1), a, G, { kb: w.kb, crit: T.chance(0.2), gold: w.goldKill, fire: w.fire });
+            z.takeDamage(w.dmg * (this.meleeMult || 1) * ((this.stats && this.stats.dmgMult) || 1), a, G, { kb: w.kb, crit: T.chance(0.2), gold: w.goldKill, fire: w.fire });
             hit = true;
           }
         }
